@@ -48,7 +48,6 @@ class NoiseDetection : AppCompatActivity() {
                     // Permission granted, proceed with using the microphone
                 } else {
                     val resultTextView: TextView = findViewById(R.id.noiseLevel)
-
                     resultTextView.text = getString(R.string.microphone_request_not_granted)
                 }
             }
