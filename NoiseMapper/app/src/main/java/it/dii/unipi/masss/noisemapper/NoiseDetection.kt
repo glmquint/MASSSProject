@@ -1,13 +1,16 @@
 package it.dii.unipi.masss.noisemapper
 
-import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import android.Manifest
+import android.content.pm.PackageManager
+import android.media.MediaRecorder
+import android.os.Bundle
+import android.os.SystemClock.sleep
 import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+
 
 class NoiseDetection : AppCompatActivity() {
     private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
@@ -32,9 +35,7 @@ class NoiseDetection : AppCompatActivity() {
         } else {
             Log.d("MicrophoneRequest", "Permission already granted")
         }
-
     }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -45,7 +46,9 @@ class NoiseDetection : AppCompatActivity() {
             RECORD_AUDIO_PERMISSION_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    // Permission granted, proceed with using the microphone
+                    Log.d("MicrophoneRequest", "Permission granted")
+                    val resultTextView: TextView = findViewById(R.id.noiseLevel)
+                    resultTextView.text = noise_sampling().toString()
                 } else {
                     val resultTextView: TextView = findViewById(R.id.noiseLevel)
                     resultTextView.text = getString(R.string.microphone_request_not_granted)
@@ -53,4 +56,17 @@ class NoiseDetection : AppCompatActivity() {
             }
         }
     }
+    private fun noise_sampling(): Double {
+        val recorder = MediaRecorder()
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        recorder.setOutputFile("/dev/null")
+        recorder.prepare();
+        sleep(500)
+        recorder.start();
+        recorder.stop();
+        return 20 * Math.log10(recorder.getMaxAmplitude() / 2700.0);
+    }
+
 }
