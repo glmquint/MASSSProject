@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">NoiseMapper</string>
+    <string name="start">Start to sense</string>
+    <string name="text_main">Welcome to NoiseMapper!</string>
+    <string name="noise_level">0db</string>
 </resources>

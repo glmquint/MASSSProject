@@ -1,5 +1,6 @@
 package it.dii.unipi.masss.noisemapper
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -26,9 +27,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        val resultTextView: TextView = findViewById(R.id.textView)
-        resultTextView.text = "Button clicked!"
-        // Do something
+        val intent = Intent(this, NoiseDetection::class.java)
+        startActivity(intent)
     }
 }
 
