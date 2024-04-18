@@ -3,4 +3,5 @@
     <string name="start">Start to sense</string>
     <string name="text_main">Welcome to NoiseMapper!</string>
     <string name="noise_level">0db</string>
+    <string name="microphone_request_not_granted">You must grant the permission to use the microphone in order to use this app</string>
 </resources>

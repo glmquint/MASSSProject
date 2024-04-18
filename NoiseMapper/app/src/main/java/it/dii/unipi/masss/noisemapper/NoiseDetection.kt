@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
+import android.util.Log
+import android.widget.TextView
+
 class NoiseDetection : AppCompatActivity() {
     private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,11 +30,11 @@ class NoiseDetection : AppCompatActivity() {
                 RECORD_AUDIO_PERMISSION_REQUEST_CODE
             )
         } else {
-            // Permission has already been granted
-            // You can proceed with using the microphone here
+            Log.d("MicrophoneRequest", "Permission already granted")
         }
 
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -44,9 +47,9 @@ class NoiseDetection : AppCompatActivity() {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // Permission granted, proceed with using the microphone
                 } else {
-                    // Permission denied, handle accordingly
+                    val resultTextView: TextView = findViewById(R.id.noiseLevel)
+                    resultTextView.text = getString(R.string.microphone_request_not_granted)
                 }
-                return
             }
         }
     }
