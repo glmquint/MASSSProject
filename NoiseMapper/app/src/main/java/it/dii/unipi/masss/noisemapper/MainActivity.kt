@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -20,10 +21,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val button: Button = findViewById(R.id.button)
+        button.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
-
+        val resultTextView: TextView = findViewById(R.id.textView)
+        resultTextView.text = "Button clicked!"
         // Do something
     }
 }
