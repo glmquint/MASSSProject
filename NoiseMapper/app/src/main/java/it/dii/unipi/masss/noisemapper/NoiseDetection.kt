@@ -4,16 +4,21 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.SystemClock.sleep
 import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.Timer
+import java.util.TimerTask
 
 
 class NoiseDetection : AppCompatActivity() {
     private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
+    private var mRecorder : MediaRecorder? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_detection)
@@ -33,6 +38,7 @@ class NoiseDetection : AppCompatActivity() {
                 RECORD_AUDIO_PERMISSION_REQUEST_CODE
             )
         } else {
+            noise_sampling()
             Log.d("MicrophoneRequest", "Permission already granted")
         }
     }
@@ -47,8 +53,7 @@ class NoiseDetection : AppCompatActivity() {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     Log.d("MicrophoneRequest", "Permission granted")
-                    val resultTextView: TextView = findViewById(R.id.noiseLevel)
-                    resultTextView.text = noise_sampling().toString()
+                    noise_sampling()
                 } else {
                     val resultTextView: TextView = findViewById(R.id.noiseLevel)
                     resultTextView.text = getString(R.string.microphone_request_not_granted)
@@ -56,17 +61,34 @@ class NoiseDetection : AppCompatActivity() {
             }
         }
     }
-    private fun noise_sampling(): Double {
-        val recorder = MediaRecorder()
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-        recorder.setOutputFile("/dev/null")
-        recorder.prepare();
-        sleep(500)
-        recorder.start();
-        recorder.stop();
-        return 20 * Math.log10(recorder.getMaxAmplitude() / 2700.0);
+    private fun noise_sampling() {
+        mRecorder = MediaRecorder()
+        mRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
+        mRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+        mRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        mRecorder!!.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3")).fd)
+        val timer = Timer()
+        timer.scheduleAtFixedRate(RecorderTask(mRecorder!!), 0, 700)
+        try {
+            mRecorder!!.prepare()
+            mRecorder!!.start()
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+    private inner class RecorderTask(private val recorder: MediaRecorder) : TimerTask() {
+        private val sound = findViewById<TextView>(R.id.noiseLevel)
+
+        override fun run() {
+            runOnUiThread {
+                val amplitude = recorder.maxAmplitude
+                val amplitudeDb = 20 * Math.log10(Math.abs(amplitude).toDouble())
+                Log.i("NoiseDetection", "Level db is $amplitudeDb")
+                sound.text = "DB level is" + amplitudeDb
+            }
+        }
     }
 
 }
