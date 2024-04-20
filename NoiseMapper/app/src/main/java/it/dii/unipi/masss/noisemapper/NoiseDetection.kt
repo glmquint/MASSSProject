@@ -29,15 +29,15 @@ class NoiseDetection : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_detection)
         val button: Button = findViewById(R.id.stop_button)
-        requestPermission()
         button.setOnClickListener {
             // Create an Intent to return to the main activity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
 
             // Close the current activity
-            onDestroy()
+            onStop()
         }
+        requestPermission()
     }
 
     private fun requestPermission() {
@@ -110,6 +110,7 @@ class NoiseDetection : AppCompatActivity() {
         mRecorder?.stop()
         mRecorder?.release()
         timer.cancel()
+        mRecorder = null
     }
 
     override fun onPause() {
@@ -117,11 +118,20 @@ class NoiseDetection : AppCompatActivity() {
         mRecorder?.stop()
         mRecorder?.release()
         timer.cancel()
+        mRecorder = null
     }
     override fun onResume() {
         super.onResume()
         noise_sampling()
 
+    }
+    override fun onStop() {
+        super.onStop()
+        mRecorder?.stop()
+        mRecorder?.release()
+        timer.cancel()
+        mRecorder = null
+        finish()
     }
 
 }
