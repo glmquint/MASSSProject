@@ -26,6 +26,11 @@ import android.hardware.SensorManager
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private val map_noise_level = mutableMapOf<Long , Double>()
     private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
+    private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
+    private val AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
+    private val AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_PERFORMANCE
+    private val AUDIO_ENCODING_BIT_RATE = 16*44100
+    private val AUDIO_SAMPLING_RATE = 44100
     private val REFRESH_RATE = 500
     private var mRecorder : MediaRecorder? = null
     private val timer = Timer()
@@ -86,9 +91,11 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
     private fun noise_sampling() {
         mRecorder = MediaRecorder()
-        mRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-        mRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        mRecorder!!.setAudioSource(AUDIO_SOURCE)
+        mRecorder!!.setOutputFormat(OUTPUT_FORMAT_AUDIO)
+        mRecorder!!.setAudioEncoder(AUDIO_ENCODER)
+        mRecorder!!.setAudioEncodingBitRate(AUDIO_ENCODING_BIT_RATE);
+        mRecorder!!.setAudioSamplingRate(AUDIO_SAMPLING_RATE);
         mRecorder!!.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3")).fd)
         timer.scheduleAtFixedRate(RecorderTask(mRecorder!!), 0, REFRESH_RATE.toLong())
         try {
