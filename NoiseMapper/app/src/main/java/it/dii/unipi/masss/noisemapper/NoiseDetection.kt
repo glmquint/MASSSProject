@@ -1,10 +1,10 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -17,14 +17,21 @@ import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 
 
-class NoiseDetection : AppCompatActivity() {
+class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private val map_noise_level = mutableMapOf<Long , Double>()
     private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
     private val REFRESH_RATE = 500
     private var mRecorder : MediaRecorder? = null
     private val timer = Timer()
+    private var sensorManager: SensorManager? = null
+    private var proximitySensor: Sensor? = null
+    private var isNearObject = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_detection)
@@ -38,6 +45,8 @@ class NoiseDetection : AppCompatActivity() {
             onStop()
         }
         requestPermission()
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     }
 
     private fun requestPermission() {
@@ -97,7 +106,11 @@ class NoiseDetection : AppCompatActivity() {
         override fun run() {
             runOnUiThread {
                 val amplitude = recorder.maxAmplitude
-                val amplitudeDb = 20 * Math.log10(Math.abs(amplitude).toDouble())
+                var amplitudeDb = 20 * Math.log10(Math.abs(amplitude).toDouble())
+                if (isNearObject) {
+                    amplitudeDb -= 10 // TODO: calibrate this value
+                    Log.i("NoiseDetection", "Proximity sensor detected an object")
+                }
                 val currentTimestamp = System.currentTimeMillis()
                 map_noise_level[currentTimestamp] = amplitudeDb
                 Log.i("NoiseDetection", "Level db is $amplitudeDb at time $currentTimestamp")
@@ -119,11 +132,12 @@ class NoiseDetection : AppCompatActivity() {
         mRecorder?.release()
         timer.cancel()
         mRecorder = null
+        sensorManager?.unregisterListener(this)
     }
     override fun onResume() {
         super.onResume()
         noise_sampling()
-
+        sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
     }
     override fun onStop() {
         super.onStop()
@@ -132,6 +146,14 @@ class NoiseDetection : AppCompatActivity() {
         timer.cancel()
         mRecorder = null
         finish()
+    }
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_PROXIMITY) {
+            isNearObject = event.values[0] < (proximitySensor?.maximumRange ?: 0.0f)
+        }
+    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        // Do nothing
     }
 
 }
