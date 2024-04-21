@@ -7,4 +7,7 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="low_noise">#008000</color> <!-- Green -->
+    <color name="medium_noise">#FFA500</color> <!-- Orange -->
+    <color name="high_noise">#FF0000</color> <!-- Red -->
 </resources>

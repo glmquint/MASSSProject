@@ -122,6 +122,17 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                 map_noise_level[currentTimestamp] = amplitudeDb
                 Log.i("NoiseDetection", "Level db is $amplitudeDb at time $currentTimestamp")
                 sound.text = String.format("%.1f", amplitudeDb)
+                when {
+                    amplitudeDb > 80 -> { // High noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.high_noise))
+                    }
+                    amplitudeDb > 60 -> { // Medium noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.medium_noise))
+                    }
+                    else -> { // Low noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.low_noise))
+                    }
+                }
             }
         }
     }
