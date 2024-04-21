@@ -21,6 +21,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import kotlin.math.abs
+import kotlin.math.log10
 
 
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
@@ -113,7 +115,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         override fun run() {
             runOnUiThread {
                 val amplitude = recorder.maxAmplitude
-                var amplitudeDb = 20 * Math.log10(Math.abs(amplitude).toDouble())
+                var amplitudeDb = 20 * log10(abs(amplitude).toDouble())
                 if (isNearObject) {
                     amplitudeDb -= 10 // TODO: calibrate this value
                     Log.i("NoiseDetection", "Proximity sensor detected an object")
