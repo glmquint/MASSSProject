@@ -21,6 +21,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import java.lang.Thread.sleep
 import kotlin.math.abs
 import kotlin.math.log10
 
@@ -35,7 +36,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private val AUDIO_SAMPLING_RATE = 44100
     private val REFRESH_RATE = 500
     private var mRecorder : MediaRecorder? = null
-    private val timer = Timer()
+    private var timer = Timer()
     private var sensorManager: SensorManager? = null
     private var proximitySensor: Sensor? = null
     private var isNearObject = false
@@ -67,6 +68,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                 RECORD_AUDIO_PERMISSION_REQUEST_CODE
             )
         } else {
+            initializeMediaRecorder()
             noise_sampling()
             Log.d("MicrophoneRequest", "Permission already granted")
         }
@@ -77,11 +79,13 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.i("MicrophoneRequest", "Request code is $requestCode")
         when (requestCode) {
             RECORD_AUDIO_PERMISSION_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     Log.d("MicrophoneRequest", "Permission granted")
+                    initializeMediaRecorder()
                     noise_sampling()
                 } else {
                     val resultTextView: TextView = findViewById(R.id.upper_text_noise_activity)
@@ -90,8 +94,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             }
         }
     }
-
-    private fun noise_sampling() {
+    private fun initializeMediaRecorder(){
         mRecorder = MediaRecorder()
         mRecorder!!.setAudioSource(AUDIO_SOURCE)
         mRecorder!!.setOutputFormat(OUTPUT_FORMAT_AUDIO)
@@ -99,7 +102,8 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         mRecorder!!.setAudioEncodingBitRate(AUDIO_ENCODING_BIT_RATE);
         mRecorder!!.setAudioSamplingRate(AUDIO_SAMPLING_RATE);
         mRecorder!!.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3")).fd)
-        timer.scheduleAtFixedRate(RecorderTask(mRecorder!!), 0, REFRESH_RATE.toLong())
+    }
+    private fun noise_sampling() {
         try {
             mRecorder!!.prepare()
             mRecorder!!.start()
@@ -108,6 +112,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        timer.scheduleAtFixedRate(RecorderTask(mRecorder!!), 0, REFRESH_RATE.toLong())
     }
     private inner class RecorderTask(private val recorder: MediaRecorder) : TimerTask() {
         private val sound = findViewById<TextView>(R.id.db_level)
@@ -138,35 +143,38 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             }
         }
     }
-    override fun onDestroy() {
-        super.onDestroy()
-        mRecorder?.stop()
-        mRecorder?.release()
-        timer.cancel()
-        mRecorder = null
-    }
-
+/*
     override fun onPause() {
         super.onPause()
         mRecorder?.stop()
-        mRecorder?.release()
         timer.cancel()
-        mRecorder = null
         sensorManager?.unregisterListener(this)
     }
+
     override fun onResume() {
         super.onResume()
+        timer = Timer()
         noise_sampling()
         sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
     }
+
+     */
     override fun onStop() {
         super.onStop()
+        timer.cancel()
+        sensorManager?.unregisterListener(this)
         mRecorder?.stop()
         mRecorder?.release()
-        timer.cancel()
         mRecorder = null
-        finish()
     }
+/*
+    override fun onRestart() {
+        super.onRestart()
+        timer = Timer()
+        //requestPermission()
+    }
+
+ */
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_PROXIMITY) {
             isNearObject = event.values[0] < (proximitySensor?.maximumRange ?: 0.0f)
