@@ -21,7 +21,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        val intent = Intent(this, BLEScanner::class.java)
+        // val intent = Intent(this, BLEScanner::class.java)
+        val intent = Intent(this, BLEScannerActivity::class.java)
         startActivity(intent)
     }
 }
