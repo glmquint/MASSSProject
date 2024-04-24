@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import it.dii.unipi.masss.noisemapper.ui.theme.NoiseMapperTheme
 
+
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     override fun onClick(v: View?) {
-        val intent = Intent(this, NoiseDetection::class.java)
+        val intent = Intent(this, BLEScanner::class.java)
         startActivity(intent)
     }
 }
