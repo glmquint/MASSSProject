@@ -1,6 +1,11 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.content.pm.PackageManager
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.ListView
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -17,7 +22,6 @@ class BLEScanner (activity: BLEScannerActivity) {
 
     init {
         setupProximityManager(activity)
-        //setupSpaces()
     }
 
     fun setupProximityManager(activity: BLEScannerActivity){
@@ -25,7 +29,6 @@ class BLEScanner (activity: BLEScannerActivity) {
             override fun onIBeaconDiscovered(device: IBeaconDevice, region: IBeaconRegion) {
                 // print the discovered iBeacon device
                 println("iBeacon: Discovered iBeacon device: $device")
-                activity.findViewById<TextView>(R.id.textView2).text = "new device discovered: ${device.uniqueId}"
             }
 
             override fun onIBeaconLost(device: IBeaconDevice, region: IBeaconRegion) {
@@ -36,30 +39,34 @@ class BLEScanner (activity: BLEScannerActivity) {
             override fun onIBeaconsUpdated(beacons: MutableList<IBeaconDevice>, region: IBeaconRegion) {
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
-                // concatenate the unique IDs of the updated iBeacon devices
-
+                activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
             }
         })
     }
 
-    /*
-    fun setupSpaces()
-    {
-        //Setting up single iBeacon region. Put your own desired values here.
-        val region : IBeaconRegion = BeaconRegion.Builder()
-            .identifier("My Region") //Region identifier is mandatory.
-            .proximity(UUID.fromString("f7826da6-4fa2-4e98-8024-bc5b71e0893e")) //Default Kontakt.io proximity.
-            //Optional major and minor values
-            //.major(1)
-            //.minor(1)
-            .build();
+    class BeaconAdapter(private val beacons: MutableList<IBeaconDevice>) : BaseAdapter() {
 
-        proximityManager.spaces().iBeaconRegion(region)
-            .forceResolveRegions(Collections.singleton(UUID.fromString("f7826da6-4fa2-4e98-8024-bc5b71e0893e")));
+        override fun getCount(): Int {
+            return beacons.size
+        }
+
+        override fun getItem(position: Int): Any {
+            return beacons[position]
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            val beacon = beacons[position]
+            val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.beacon_item, parent, false)
+            view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
+            view.findViewById<TextView>(R.id.beacon_distance).text = beacon.distance.toString()
+            return view
+        }
+
     }
-
-     */
-
 
     fun stopScanning() {
         proximityManager.stopScanning()

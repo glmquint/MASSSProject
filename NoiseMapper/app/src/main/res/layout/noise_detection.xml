@@ -33,7 +33,7 @@
         app:layout_constraintVertical_bias="0.499" />
 
     <Button
-        android:id="@+id/stop_button"
+        android:id="@+id/stop_ble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/noise_sensing_stop_button"

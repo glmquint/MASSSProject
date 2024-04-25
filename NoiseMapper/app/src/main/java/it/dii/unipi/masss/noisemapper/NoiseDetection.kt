@@ -21,7 +21,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import java.lang.Thread.sleep
 import kotlin.math.abs
 import kotlin.math.log10
 
@@ -43,7 +42,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_detection)
-        val button: Button = findViewById(R.id.stop_button)
+        val button: Button = findViewById(R.id.stop_ble)
         button.setOnClickListener {
             // Create an Intent to return to the main activity
             val intent = Intent(this, MainActivity::class.java)
