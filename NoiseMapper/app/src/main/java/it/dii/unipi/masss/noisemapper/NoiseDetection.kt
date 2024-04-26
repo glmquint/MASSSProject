@@ -35,6 +35,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private val AUDIO_ENCODING_BIT_RATE = 16*44100
     private val AUDIO_SAMPLING_RATE = 44100
     private val REFRESH_RATE = 500
+    private val DB_ADJUSTMENT_PROXIMITY_SENSOR = 10
     private var mRecorder : MediaRecorder? = null
     private var timer = Timer()
     private var sensorManager: SensorManager? = null
@@ -120,9 +121,10 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         override fun run() {
             runOnUiThread {
                 val amplitude = recorder.maxAmplitude
-                var amplitudeDb = 20 * log10(abs(amplitude).toDouble())
+                Log.i("NoiseDetection", "Recorder max amplitude is $amplitude")
+                var amplitudeDb = 20 * log10(abs(if (amplitude==0) 1 else amplitude).toDouble())
                 if (isNearObject) {
-                    amplitudeDb -= 10 // TODO: calibrate this value
+                    amplitudeDb += DB_ADJUSTMENT_PROXIMITY_SENSOR // TODO: calibrate this value
                     Log.i("NoiseDetection", "Proximity sensor detected an object")
                 }
                 val currentTimestamp = System.currentTimeMillis()
