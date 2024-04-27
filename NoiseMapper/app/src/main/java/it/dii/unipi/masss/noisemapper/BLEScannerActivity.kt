@@ -1,16 +1,15 @@
 package it.dii.unipi.masss.noisemapper
 
-import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.kontakt.sdk.android.common.KontaktSDK
+
 
 class BLEScannerActivity : AppCompatActivity() {
     private val BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 102
@@ -33,6 +32,7 @@ class BLEScannerActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
+        /*
         val selfPermission = ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
         if (selfPermission != PackageManager.PERMISSION_GRANTED
         ) {
@@ -45,6 +45,28 @@ class BLEScannerActivity : AppCompatActivity() {
         } else {
             println("iBeacon: Starting scanning")
 
+        }
+        */
+        val requiredPermissions =
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION) else arrayOf<String>(
+                android.Manifest.permission.BLUETOOTH_SCAN,
+                android.Manifest.permission.BLUETOOTH_CONNECT
+            ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
+
+        // check if the permissions are already granted
+        val notGrantedPermissions = requiredPermissions.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }.toTypedArray()
+
+        if (notGrantedPermissions.isNotEmpty()) {
+            // request the permissions
+            ActivityCompat.requestPermissions(
+                this,
+                notGrantedPermissions,
+                BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE
+            )
+        } else {
+            println("iBeacon: Starting scanning")
         }
         // check that bluetooth is enabled, if not, ask the user to enable it
         val bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
@@ -66,7 +88,9 @@ class BLEScannerActivity : AppCompatActivity() {
         when (requestCode) {
             BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                if ((grantResults.isNotEmpty() && grantResults.filter {
+                            it != PackageManager.PERMISSION_GRANTED
+                            }.toTypedArray().isNotEmpty())) {
                     Log.d("BluetoothRequest", "Permission granted")
 
                 } else {
