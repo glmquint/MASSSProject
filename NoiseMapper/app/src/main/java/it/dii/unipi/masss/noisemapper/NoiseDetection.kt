@@ -21,13 +21,15 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.widget.Toast
+import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
 import kotlin.math.log10
 
 
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
-    private val map_noise_level = mutableMapOf<Long , Double>()
-    private val RECORD_AUDIO_PERMISSION_REQUEST_CODE = 101
+    val map_noise_level = mutableMapOf<Long , Double>()
+    private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
     private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
     private val AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
     private val AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_PERFORMANCE
@@ -39,37 +41,50 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
     private var proximitySensor: Sensor? = null
     private var isNearObject = false
+    private var ble_scanner : BLEScanner? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.noise_detection)
+        setContentView(R.layout.ble_layout)
         val button: Button = findViewById(R.id.stop_ble)
         button.setOnClickListener {
             // Create an Intent to return to the main activity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-
             // Close the current activity
             onStop()
         }
-        requestPermission()
+        KontaktSDK.initialize(this);
+        ble_scanner = BLEScanner(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        requestPermission()
     }
 
     private fun requestPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED
+            != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             // Permission is not granted, request the permission
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                RECORD_AUDIO_PERMISSION_REQUEST_CODE
+                arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.ACCESS_FINE_LOCATION),
+                RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE
             )
         } else {
-            initializeMediaRecorder()
-            noise_sampling()
-            Log.d("MicrophoneRequest", "Permission already granted")
+            startSensing()
+        }
+
+        /////////////////////
+        // check that bluetooth is enabled, if not, ask the user to enable it
+        val bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
+            getSystemService(Context.BLUETOOTH_SERVICE)
+        )?.adapter
+        if (!(bluetoothAdapter?.isEnabled)!!) {
+            val enableBtIntent = Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivity(enableBtIntent)
         }
     }
     override fun onRequestPermissionsResult(
@@ -80,18 +95,25 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.i("MicrophoneRequest", "Request code is $requestCode")
         when (requestCode) {
-            RECORD_AUDIO_PERMISSION_REQUEST_CODE -> {
+            RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    Log.d("MicrophoneRequest", "Permission granted")
-                    initializeMediaRecorder()
-                    noise_sampling()
+                if ((grantResults.isNotEmpty() && grantResults.any { it != PackageManager.PERMISSION_GRANTED })) {
+                    Toast.makeText(
+                        this,
+                        R.string.microphone_bluetooth_request_not_granted,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
-                    val resultTextView: TextView = findViewById(R.id.upper_text_noise_activity)
-                    resultTextView.text = getString(R.string.microphone_request_not_granted)
+                    startSensing()
                 }
             }
         }
+    }
+    private fun startSensing(){
+        Log.d("MicrophoneRequest", "Permission granted")
+        initializeMediaRecorder()
+        noise_sampling()
+        ble_scanner?.startScanning()
     }
     private fun initializeMediaRecorder(){
         mRecorder = MediaRecorder()

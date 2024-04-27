@@ -14,10 +14,10 @@ import com.kontakt.sdk.android.common.KontaktSDK
 
 class BLEScannerActivity : AppCompatActivity() {
     private val BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 102
+    //private val ble_scanner = BLEScanner(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_layout)
-        KontaktSDK.initialize(this);
         val button: Button = findViewById(R.id.stop_ble)
         button.setOnClickListener {
             // Create an Intent to return to the main activity
@@ -28,8 +28,6 @@ class BLEScannerActivity : AppCompatActivity() {
             onStop()
         }
         requestPermissions()
-        val ble_scanner = BLEScanner(this)
-        ble_scanner.startScanning()
     }
 
     private fun requestPermissions() {
@@ -54,6 +52,7 @@ class BLEScannerActivity : AppCompatActivity() {
             val enableBtIntent = Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivity(enableBtIntent)
         }
+        //ble_scanner.startScanning()
     }
 
     override fun onRequestPermissionsResult(

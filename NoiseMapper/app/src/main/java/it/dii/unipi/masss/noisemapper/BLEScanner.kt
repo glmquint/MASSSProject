@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.kontakt.sdk.android.ble.device.BeaconRegion
@@ -17,14 +18,15 @@ import com.kontakt.sdk.android.common.profile.IBeaconRegion
 import java.util.Collections
 import java.util.UUID
 
-class BLEScanner (activity: BLEScannerActivity) {
+class BLEScanner (activity: NoiseDetection) {
     private val proximityManager = ProximityManagerFactory.create(activity)
+    private var lastUpdate : Long = 0
 
     init {
         setupProximityManager(activity)
     }
 
-    fun setupProximityManager(activity: BLEScannerActivity){
+    fun setupProximityManager(activity: NoiseDetection){
         proximityManager.setIBeaconListener(object : SimpleIBeaconListener() {
             override fun onIBeaconDiscovered(device: IBeaconDevice, region: IBeaconRegion) {
                 // print the discovered iBeacon device
@@ -40,6 +42,9 @@ class BLEScanner (activity: BLEScannerActivity) {
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
                 activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
+                val average_noise = activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY}.values.toList().average()
+                activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
+                lastUpdate = System.currentTimeMillis()
             }
         })
     }
@@ -62,7 +67,7 @@ class BLEScanner (activity: BLEScannerActivity) {
             val beacon = beacons[position]
             val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
-            view.findViewById<TextView>(R.id.beacon_distance).text = beacon.distance.toString()
+            view.findViewById<TextView>(R.id.beacon_distance).text = beacon.distance.toString() + "m"
             return view
         }
 
