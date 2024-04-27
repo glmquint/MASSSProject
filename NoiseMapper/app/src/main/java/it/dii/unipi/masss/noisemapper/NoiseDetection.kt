@@ -152,15 +152,12 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         timer.cancel()
         sensorManager?.unregisterListener(this)
     }
-
-    override fun onResume() {
-        super.onResume()
-        timer = Timer()
-        noise_sampling()
+*/
+    override fun onStart() {
+        super.onStart()
         sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
-     */
     override fun onStop() {
         super.onStop()
         timer.cancel()
