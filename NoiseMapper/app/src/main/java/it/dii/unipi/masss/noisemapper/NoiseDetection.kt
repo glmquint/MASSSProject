@@ -166,14 +166,16 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         mRecorder?.release()
         mRecorder = null
     }
-/*
+
     override fun onRestart() {
         super.onRestart()
         timer = Timer()
-        //requestPermission()
+        requestPermission()
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     }
 
- */
+
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_PROXIMITY) {
             isNearObject = event.values[0] < (proximitySensor?.maximumRange ?: 0.0f)
