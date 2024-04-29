@@ -54,6 +54,10 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             // Close the current activity
             onStop()
         }
+        // call the class to read the BLEConfig file
+        val bleConfig = BLEConfig(this)
+
+        // Initialize Kontakt SDK
         KontaktSDK.initialize(this);
         ble_scanner = BLEScanner(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
