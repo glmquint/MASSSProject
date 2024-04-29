@@ -21,6 +21,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.widget.Toast
 import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
@@ -57,58 +58,68 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         ble_scanner = BLEScanner(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        requestPermission()
+        requestPermissions()
     }
 
-    private fun requestPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // Permission is not granted, request the permission
+    private fun requestPermissions() {
+        val requiredPermissions =
+            arrayOf(Manifest.permission.RECORD_AUDIO) +
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+                arrayOf<String>(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            else arrayOf<String>(
+                android.Manifest.permission.BLUETOOTH_SCAN,
+                android.Manifest.permission.BLUETOOTH_CONNECT,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
+
+        // check if the permissions are already granted
+        val notGrantedPermissions = requiredPermissions.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }.toTypedArray()
+
+        if (notGrantedPermissions.isNotEmpty()) {
+            // request the permissions
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.ACCESS_FINE_LOCATION),
+                notGrantedPermissions,
                 RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE
             )
         } else {
+            println("iBeacon: Permissions already granted, starting scanning")
             startSensing()
         }
-
-        /////////////////////
         // check that bluetooth is enabled, if not, ask the user to enable it
         val bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
-            getSystemService(Context.BLUETOOTH_SERVICE)
+            getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
         if (!(bluetoothAdapter?.isEnabled)!!) {
             val enableBtIntent = Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_ENABLE)
             startActivity(enableBtIntent)
         }
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.i("MicrophoneRequest", "Request code is $requestCode")
+        Log.i("BluetoothRequest", "Request code is $requestCode")
         when (requestCode) {
             RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE -> {
                 // If request is cancelled, the result arrays are empty.
-                if ((grantResults.isNotEmpty() && grantResults.any { it != PackageManager.PERMISSION_GRANTED })) {
-                    Toast.makeText(
-                        this,
-                        R.string.microphone_bluetooth_request_not_granted,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
+                if ((grantResults.isNotEmpty() && grantResults.filter {
+                        it == PackageManager.PERMISSION_DENIED
+                    }.toTypedArray().isEmpty())) {
+                    Log.d("PermissionRequest", "All permissions granted")
                     startSensing()
+                } else {
+                    Log.d("iBeacon",  "Permission not granted")
                 }
             }
         }
     }
+
     private fun startSensing(){
         Log.d("MicrophoneRequest", "Permission granted")
         initializeMediaRecorder()
