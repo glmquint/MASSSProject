@@ -64,10 +64,10 @@ class BLEScanner (activity: NoiseDetection) {
         }
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val beacon = beacons[position]
+            val beacon = beacons.sortedBy { it.distance }[position]
             val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
-            view.findViewById<TextView>(R.id.beacon_distance).text = beacon.distance.toString() + "m"
+            view.findViewById<TextView>(R.id.beacon_distance).text = "rssi: ${beacon.rssi.toString()} (${String.format("%.2f", beacon.distance)}m) ${beacon.proximity.toString()}"
             return view
         }
 

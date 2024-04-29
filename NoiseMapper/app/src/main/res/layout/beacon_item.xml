@@ -6,12 +6,11 @@
     android:layout_height="match_parent">
 
     <TableRow
-        android:layout_width="263dp"
-        android:layout_height="19dp"
-        android:layout_marginStart="78dp"
-        android:layout_marginEnd="77dp"
+        android:layout_width="416dp"
+        android:layout_height="20dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -27,8 +26,8 @@
 
         <TextView
             android:id="@+id/beacon_distance"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="331dp"
+            android:layout_height="match_parent"
             android:text="TextView" />
     </TableRow>
 
