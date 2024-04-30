@@ -67,7 +67,7 @@ class BLEScanner (activity: NoiseDetection) {
             val beacon = beacons.sortedBy { it.distance }[position]
             val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
-            view.findViewById<TextView>(R.id.beacon_distance).text = "rssi: ${beacon.rssi.toString()} (${String.format("%.2f", beacon.distance)}m) ${beacon.proximity.toString()}"
+            view.findViewById<TextView>(R.id.beacon_distance).text = "rssi: ${beacon.rssi.toString()} (${String.format("%.2f", beacon.distance)}m) ${beacon.batteryPower.toString()}% ${beacon.proximity}"
             return view
         }
 
