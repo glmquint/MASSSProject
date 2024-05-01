@@ -57,7 +57,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         }
         // call the class to read the BLEConfig file
         val bleConfig = BLEConfig(this,this.applicationContext)
-        gotConfig = bleConfig.readJSONfile()
+        gotConfig = bleConfig.getConfig()
         if (gotConfig){
             println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
 
