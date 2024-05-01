@@ -22,7 +22,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
-import android.widget.Toast
 import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
 import kotlin.math.log10
@@ -55,7 +54,8 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             onStop()
         }
         // call the class to read the BLEConfig file
-        val bleConfig = BLEConfig(this)
+        val bleConfig = BLEConfig(this,this.applicationContext)
+        bleConfig.prova()
 
         // Initialize Kontakt SDK
         KontaktSDK.initialize(this);
