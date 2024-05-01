@@ -1,6 +1,7 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.content.Context
+import android.widget.Toast
 import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.File
@@ -9,8 +10,6 @@ import java.io.InputStreamReader
 import java.net.URL
 import java.io.*
 import java.net.HttpURLConnection
-import com.google.gson.JsonObject
-import kotlin.system.exitProcess
 
 interface FileDownloadCallback {
 
@@ -18,27 +17,11 @@ interface FileDownloadCallback {
     fun onFileDownloadError(errorMessage: String)
 }
 
-data class BeaconData(val room: String, val beacon: String)
 class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
+    var beaconRoomMap = mutableMapOf<String, String>()
+    val url = "http://192.168.1.104:5002/resources/config.json"
     var lock = Object()
 
-    fun readJsonFile(filePath: String): List<BeaconData> {
-
-        val jsonString = File(filePath).readText()
-        val gson = Gson()
-        val beaconDataArray = gson.fromJson(jsonString, Array<BeaconData>::class.java)
-        return beaconDataArray.toList()
-    }
-
-    fun getBeaconData(): List<BeaconData> {
-
-        val beaconDataList = readJsonFile("/data/data.json")
-
-        for (beaconData in beaconDataList) {
-            println("Room: ${beaconData.room} - Beacon: ${beaconData.beacon}")
-        }
-        return beaconDataList
-    }
     fun writeToFile(context: Context, fileName: String, data: String) {
         try {
             val fileOutputStream: FileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
@@ -66,7 +49,7 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
         }
         return stringBuilder.toString()
     }
-    fun readJSONfile(){
+    fun readJSONfile(): Boolean {
 
         try {
             val gson = Gson()
@@ -77,57 +60,47 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
             synchronized(lock) {
                 val jsonString = readFromFile(context, fileName)
                 // Parse JSON to JsonObject
-                val jsonObject: JsonObject = gson.fromJson(jsonString, JsonObject::class.java)
+                beaconRoomMap = gson.fromJson(jsonString, mutableMapOf<String, String>()::class.java)
 
-                // Access JSON elements
-                val name = jsonObject["name"].asString
-                val age = jsonObject["age"].asInt
-
-                println("Names: $name, Age: $age")
+                for ((key, value) in beaconRoomMap) {
+                    println("Beacon: $key, Room: $value")
+                }
             }
         }
         catch (e: Exception) {
             println("errore")
             e.printStackTrace()
+            Toast.makeText(context, "Error: Unable to retrieve configuration file. Please check you internet connection", Toast.LENGTH_LONG).show()
+            return false
         }
-    }
-    fun prova1() {
-            // Create a URL for the desired page
-
-
-        val context = context // Assuming you have an instance of Context
-        val fileName = "example.json"
-        val data = "Hello, world!"
-        writeToFile(context, fileName, data)
-        val fileContents = readFromFile(context, fileName)
-        println("File Contents: $fileContents")
+        return true
     }
 
 
     fun retrieveFileFromServer(url: String, context: Context, callback: FileDownloadCallback, fileToSave: String) {
 
         Thread {
-            try {
-                val connection = URL(url).openConnection() as HttpURLConnection
-                connection.connect()
-                synchronized(lock) {
-                    val inputStream = BufferedInputStream(connection.inputStream)
-                    val file = File(context.filesDir, fileToSave)
-                    println("files_downaload $file")
-                    val outputStream = FileOutputStream(file)
-                    inputStream.use { input ->
-                        outputStream.use { output ->
-                            input.copyTo(output)
+            synchronized(lock) {
+                try {
+                    val connection = URL(url).openConnection() as HttpURLConnection
+                    connection.connect()
+                        val inputStream = BufferedInputStream(connection.inputStream)
+                        val file = File(context.filesDir, fileToSave)
+                        println("files_downaload $file")
+                        val outputStream = FileOutputStream(file)
+                        inputStream.use { input ->
+                            outputStream.use { output ->
+                                input.copyTo(output)
+                            }
                         }
-                    }
-                    callback.onFileDownloaded(file.absolutePath)
-                    inputStream.close()
-                    outputStream.close()
-                    lock.notify()
+                        callback.onFileDownloaded(file.absolutePath)
+                        inputStream.close()
+                        outputStream.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    callback.onFileDownloadError("Error: ${e.message}")
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                callback.onFileDownloadError("Error: ${e.message}")
+                lock.notify()
             }
         }.start()
     }
@@ -152,13 +125,12 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
         //println("File Contents: $fileContents")
     }
 
-    fun prova(){
-        val url = "http://192.168.1.178:8000/config.json"
+    fun getConfig(): Boolean {
         GetConfigFileFromServer(url)
         synchronized(lock) {
             lock.wait()
         }
-        readJSONfile()
+        return readJSONfile()
     }
 }
 // "the value is saved /data/user/0/it.dii.unipi.masss.noisemapper/files/config.json"

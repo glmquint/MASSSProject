@@ -28,6 +28,7 @@ import kotlin.math.log10
 
 
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
+    private var gotConfig: Boolean = false
     val map_noise_level = mutableMapOf<Long , Double>()
     private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
     private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
@@ -55,11 +56,14 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         }
         // call the class to read the BLEConfig file
         val bleConfig = BLEConfig(this,this.applicationContext)
-        bleConfig.prova()
+        gotConfig = bleConfig.readJSONfile()
+        if (gotConfig){
+            println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
 
-        // Initialize Kontakt SDK
-        KontaktSDK.initialize(this);
-        ble_scanner = BLEScanner(this)
+            // Initialize Kontakt SDK
+            KontaktSDK.initialize(this);
+            ble_scanner = BLEScanner(this)
+        }
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         requestPermissions()
