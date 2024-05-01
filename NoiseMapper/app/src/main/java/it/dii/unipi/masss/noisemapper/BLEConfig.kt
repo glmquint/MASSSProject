@@ -10,15 +10,17 @@ import java.net.URL
 import java.io.*
 import java.net.HttpURLConnection
 import com.google.gson.JsonObject
-import java.lang.Thread.sleep
+import kotlin.system.exitProcess
 
 interface FileDownloadCallback {
+
     fun onFileDownloaded(filePath: String)
     fun onFileDownloadError(errorMessage: String)
 }
 
 data class BeaconData(val room: String, val beacon: String)
 class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
+    var lock = Object()
 
     fun readJsonFile(filePath: String): List<BeaconData> {
 
@@ -37,7 +39,6 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
         }
         return beaconDataList
     }
-
     fun writeToFile(context: Context, fileName: String, data: String) {
         try {
             val fileOutputStream: FileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
@@ -48,7 +49,6 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
             e.printStackTrace()
         }
     }
-
     fun readFromFile(context: Context, fileName: String): String {
         val stringBuilder = StringBuilder()
         try {
@@ -66,25 +66,31 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
         }
         return stringBuilder.toString()
     }
-
     fun readJSONfile(){
-        val gson = Gson()
 
-        val fileName = "config.json"
-        val jsonString = readFromFile(context, fileName)
+        try {
+            val gson = Gson()
 
-        // Parse JSON to JsonObject
-        val jsonObject: JsonObject = gson.fromJson(jsonString, JsonObject::class.java)
 
-        // Access JSON elements
-        val name = jsonObject["name"].asString
-        val age = jsonObject["age"].asInt
+            val fileName = "config.json"
 
-        println("Names: $name, Age: $age")
+            synchronized(lock) {
+                val jsonString = readFromFile(context, fileName)
+                // Parse JSON to JsonObject
+                val jsonObject: JsonObject = gson.fromJson(jsonString, JsonObject::class.java)
+
+                // Access JSON elements
+                val name = jsonObject["name"].asString
+                val age = jsonObject["age"].asInt
+
+                println("Names: $name, Age: $age")
+            }
+        }
+        catch (e: Exception) {
+            println("errore")
+            e.printStackTrace()
+        }
     }
-
-    // Usage
-
     fun prova1() {
             // Create a URL for the desired page
 
@@ -98,21 +104,27 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
     }
 
 
-    fun retrieveFileFromServer(url: String, context: Context, callback: FileDownloadCallback) {
+    fun retrieveFileFromServer(url: String, context: Context, callback: FileDownloadCallback, fileToSave: String) {
 
         Thread {
             try {
                 val connection = URL(url).openConnection() as HttpURLConnection
                 connection.connect()
-                val inputStream = BufferedInputStream(connection.inputStream)
-                val file = File(context.filesDir, "config.json")
-                val outputStream = FileOutputStream(file)
-                inputStream.use { input ->
-                    outputStream.use { output ->
-                        input.copyTo(output)
+                synchronized(lock) {
+                    val inputStream = BufferedInputStream(connection.inputStream)
+                    val file = File(context.filesDir, fileToSave)
+                    println("files_downaload $file")
+                    val outputStream = FileOutputStream(file)
+                    inputStream.use { input ->
+                        outputStream.use { output ->
+                            input.copyTo(output)
+                        }
                     }
+                    callback.onFileDownloaded(file.absolutePath)
+                    inputStream.close()
+                    outputStream.close()
+                    lock.notify()
                 }
-                callback.onFileDownloaded(file.absolutePath)
             } catch (e: Exception) {
                 e.printStackTrace()
                 callback.onFileDownloadError("Error: ${e.message}")
@@ -121,9 +133,8 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
     }
 
     // Usage
-    fun prova2() {
+    fun GetConfigFileFromServer(url: String) {
         //type the url of the server
-        val url = "http://192.168.132.83:8000/config.json"
 
         val callback = object : FileDownloadCallback {
             override fun onFileDownloaded(filePath: String) {
@@ -135,15 +146,19 @@ class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
             }
         }
 
-        retrieveFileFromServer(url, context, callback)
+        retrieveFileFromServer(url, context, callback , fileToSave="config.json")
         //val fileName = "data.json"
         //val fileContents = readFromFile(context, fileName)
         //println("File Contents: $fileContents")
     }
 
     fun prova(){
-        prova2()
+        val url = "http://192.168.1.178:8000/config.json"
+        GetConfigFileFromServer(url)
+        synchronized(lock) {
+            lock.wait()
+        }
         readJSONfile()
     }
 }
-// ""
+// "the value is saved /data/user/0/it.dii.unipi.masss.noisemapper/files/config.json"
