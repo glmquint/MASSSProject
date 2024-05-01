@@ -17,9 +17,9 @@ interface FileDownloadCallback {
     fun onFileDownloadError(errorMessage: String)
 }
 
-class BLEConfig(noiseDetection: NoiseDetection, private val context: Context) {
+class BLEConfig(private val context: Context) {
     var beaconRoomMap = mutableMapOf<String, String>()
-    val url = "http://192.168.1.104:5002/resources/config.json"
+    val url = context.getString(R.string.serverURL) + "/resources/config.json"
     var lock = Object()
 
     fun writeToFile(context: Context, fileName: String, data: String) {

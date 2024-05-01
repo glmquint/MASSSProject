@@ -3,6 +3,7 @@
     <string name="main_text_button">Start to sense</string>
     <string name="text_main">Welcome to NoiseMapper!</string>
     <string name="microphone_bluetooth_request_not_granted">You must grant the permission to use the microphone and bluetooth in order to use this app</string>
+    <string name="serverURL">http://192.168.1.104:5002</string>
     <string name="upper_text_noise_activity">Current noise level is</string>
     <string name="noise_measurement">0.0</string>
     <string name="db">db</string>
