@@ -210,7 +210,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     override fun onRestart() {
         super.onRestart()
         timer = Timer()
-        requestPermission()
+        requestPermissions()
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     }
