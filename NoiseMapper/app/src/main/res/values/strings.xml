@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">NoiseMapper</string>
+    <string name="main_text_button">Start to sense</string>
+    <string name="text_main">Welcome to NoiseMapper!</string>
+    <string name="microphone_bluetooth_request_not_granted">You must grant the permission to use the microphone and bluetooth in order to use this app</string>
+    <string name="upper_text_noise_activity">Current noise level is</string>
+    <string name="noise_measurement">0.0</string>
+    <string name="db">db</string>
+    <string name="rssi">0.0</string>
+    <string name="noise_sensing_stop_button">Stop sensing</string>
+    <string name="kontakt_io_api_key">fHMdajEKOGTZanfNXEUJRlnZCsgDFYVd</string>
 </resources>

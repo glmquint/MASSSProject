@@ -1,31 +1,29 @@
 package it.dii.unipi.masss.noisemapper
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import android.view.View
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import it.dii.unipi.masss.noisemapper.ui.theme.NoiseMapperTheme
 
-class MainActivity : ComponentActivity() {
+
+class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            NoiseMapperTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("plz help me")
-                }
-            }
-        }
+        setContentView(R.layout.activity_main)
+        val button: Button = findViewById(R.id.button)
+        button.setOnClickListener(this)
+    }
+
+    override fun onClick(v: View?) {
+        // val intent = Intent(this, BLEScanner::class.java)
+        val intent = Intent(this, NoiseDetection::class.java)
+        startActivity(intent)
     }
 }
 
