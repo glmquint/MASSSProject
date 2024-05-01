@@ -28,6 +28,7 @@ import kotlin.math.log10
 
 
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
+    lateinit var bleConfig: BLEConfig
     private var gotConfig: Boolean = false
     val map_noise_level = mutableMapOf<Long , Double>()
     private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
@@ -56,7 +57,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             onStop()
         }
         // call the class to read the BLEConfig file
-        val bleConfig = BLEConfig(this,this.applicationContext)
+        bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
         if (gotConfig){
             println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
