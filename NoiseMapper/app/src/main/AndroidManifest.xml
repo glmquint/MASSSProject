@@ -43,10 +43,12 @@
             android:exported="false"
             />
         <activity android:name=".NoiseDetection"
-            android:label="@string/app_name"
+            android:label="NoiseDetection"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         </activity>
-        <activity android:name="it.dii.unipi.masss.noisemapper.BLEScannerActivity" />
+        <activity android:name=".DynamicPage"
+            android:label="DynamicPage"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar"/>
         <meta-data
             android:name="kontakt.io.API_KEY"
             android:value="@string/kontakt_io_api_key" />
