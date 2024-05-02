@@ -1,0 +1,43 @@
+import khttp.get
+import scientifik.plotly.Plotly
+import scientifik.plotly.makeFile
+import scientifik.plotly.models.Trace
+import scientifik.plotly.trace
+
+fun main() {
+    
+    val response = get("")
+    val data = response.jsonObject.getJSONArray("data")
+    
+   
+    val xData = mutableListOf<Number>()
+    val yData = mutableListOf<Number>()
+    
+    for (i in 0 until data.length()) {
+        val record = data.getJSONObject(i)
+        xData.add(record.getInt("x"))
+        yData.add(record.getInt("y"))
+    }
+    
+   
+    val trace: Trace = trace {
+        x.set(xData)
+        y.set(yData)
+        mode = Trace.Mode.lines+markers
+    }
+    
+    val plot = Plotly.plot {
+        traces(trace)
+        layout {
+            title = "Your Graph Title"
+            xaxis {
+                title = "X Axis"
+            }
+            yaxis {
+                title = "Y Axis"
+            }
+        }
+    }
+    
+    plot.makeFile()
+}
