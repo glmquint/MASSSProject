@@ -59,6 +59,8 @@ class BLEScanner (val activity: NoiseDetection) {
                 activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
                 pushUpdate(nearest_room, average_noise, tonino)
+                val graph = Graph();
+                graph.makeplot(activity.applicationContext)
             }
         })
     }

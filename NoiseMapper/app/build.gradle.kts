@@ -45,6 +45,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/license/*"
         }
     }
 }
@@ -69,4 +70,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("org.jetbrains.lets-plot:lets-plot-kotlin-jvm:4.5.0")
+    implementation("org.jetbrains.lets-plot:lets-plot-image-export:4.1.0")
 }
