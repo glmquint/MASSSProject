@@ -1,6 +1,7 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.content.pm.PackageManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,10 +49,14 @@ class BLEScanner (val activity: NoiseDetection) {
 
             override fun onIBeaconsUpdated(beacons: MutableList<IBeaconDevice>, region: IBeaconRegion) {
                 // sort the iBeacon devices by rssi
-                val mutableBeacons = beacons.toMutableList()
+                val mutableBeacons = beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.keys }.toMutableList()
+                if(mutableBeacons.isEmpty()){
+                    return
+                }
                 mutableBeacons.sortBy { it.rssi }
                 val tonino = mutableBeacons[0]
-                val nearest_room = activity.bleConfig.beaconRoomMap[tonino.uniqueId]
+                var nearest_room = activity.bleConfig.beaconRoomMap[tonino.uniqueId]?: "Unknown"
+
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
                 activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
@@ -59,6 +64,9 @@ class BLEScanner (val activity: NoiseDetection) {
                 activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
                 pushUpdate(nearest_room, average_noise, tonino)
+
+                val real_room = activity.findViewById<TextView>(R.id.real_room)
+                real_room.text = "You are in: $nearest_room"
             }
         })
     }

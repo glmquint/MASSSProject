@@ -183,6 +183,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                         sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.low_noise))
                     }
                 }
+
             }
         }
     }
