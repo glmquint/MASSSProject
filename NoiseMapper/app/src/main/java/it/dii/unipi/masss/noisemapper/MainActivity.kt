@@ -26,11 +26,6 @@ class MainActivity : AppCompatActivity(){
                     val intent = Intent(this, NoiseDetection::class.java)
                     startActivity(intent)
                 }
-                R.id.button_dynamic_page -> {
-                    Log.i("MainActivity", "Dynamic page button clicked")
-                    val intent = Intent(this, DynamicPage::class.java)
-                    startActivity(intent)
-                }
                 R.id.button_noise_map -> {
                     Log.i("MainActivity", "Noise map button clicked")
                     val intent = Intent(this, NoiseMap::class.java)

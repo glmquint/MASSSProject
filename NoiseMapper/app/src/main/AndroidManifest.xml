@@ -46,9 +46,6 @@
             android:label="NoiseDetection"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         </activity>
-        <activity android:name=".DynamicPage"
-            android:label="DynamicPage"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar"/>
         <activity android:name=".NoiseMap"
             android:label="NoiseMap"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar"/>
