@@ -18,7 +18,6 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val button: Button = findViewById(R.id.button)
-        val buttonDynamicPage: Button = findViewById(R.id.button_dynamic_page)
         val buttonNoiseMap: Button = findViewById(R.id.button_noise_map)
         val listener = View.OnClickListener { view ->
             when (view.id) {
@@ -34,7 +33,6 @@ class MainActivity : AppCompatActivity(){
             }
         }
         button.setOnClickListener(listener)
-        buttonDynamicPage.setOnClickListener(listener)
         buttonNoiseMap.setOnClickListener(listener)
     }
 
