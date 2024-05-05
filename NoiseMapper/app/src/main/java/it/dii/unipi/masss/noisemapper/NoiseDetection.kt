@@ -198,6 +198,9 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     override fun onStart() {
         super.onStart()
         sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
+        // create a new thread to start the PollingRequest
+        val pollingRequest = PollingRequest(this)
+        pollingRequest.start()
     }
 
     override fun onStop() {
