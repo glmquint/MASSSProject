@@ -23,6 +23,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.widget.Switch
+import androidx.appcompat.widget.SwitchCompat
 import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
 import kotlin.math.log10
@@ -64,7 +65,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         gotConfig = bleConfig.getConfig()
 
         // check the state of the switch switch1
-        val switch1: Switch = findViewById(R.id.switch1)
+        val switch1: SwitchCompat = findViewById(R.id.switch1)
         val isSwitchChecked = switch1.isChecked
 
         if (isSwitchChecked) {
