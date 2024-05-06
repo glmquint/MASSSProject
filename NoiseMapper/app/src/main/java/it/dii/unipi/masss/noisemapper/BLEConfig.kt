@@ -125,10 +125,12 @@ class BLEConfig(private val context: Context) {
         //println("File Contents: $fileContents")
     }
 
-    fun getConfig(): Boolean {
-        GetConfigFileFromServer(url)
-        synchronized(lock) {
-            lock.wait()
+    fun getConfig(offline: Boolean = false): Boolean {
+        if (!offline) {
+            GetConfigFileFromServer(url)
+            synchronized(lock) {
+                lock.wait()
+            }
         }
         return readJSONfile()
     }
