@@ -63,26 +63,26 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
-
-        // check the state of the switch switch1
-        val switch1: SwitchCompat = findViewById(R.id.switch1)
-        val isSwitchChecked = switch1.isChecked
-
-        if (isSwitchChecked) {
-            Log.i("NoiseDetection", "Switch has been checked")
-            if (gotConfig){
-                println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
-
-                // Initialize Kontakt SDK
-                KontaktSDK.initialize(this);
-                ble_scanner = BLEScanner(this)
-            }
-            sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-            proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-            requestPermissions()
-        } else {
-            Log.i("NoiseDetection", "Switch is not checked")
+        if (gotConfig){
+            //println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
+            // Initialize Kontakt SDK
+            KontaktSDK.initialize(this);
+            ble_scanner = BLEScanner(this)
         }
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        requestPermissions()
+        val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.switch1)
+        switch1.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
+                val pollingRequest = PollingRequest(this)
+                pollingRequest.start()
+            } else {
+                Log.i("NoiseDetection", "Switch is off")
+            }
+        }
+
 
     }
 
@@ -212,10 +212,13 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 */
     override fun onStart() {
         super.onStart()
-        sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
-        // create a new thread to start the PollingRequest
-        //val pollingRequest = PollingRequest(this)
-        //pollingRequest.start()
+        // if the switch is checked, start the BLE scanning
+        val switch1: SwitchCompat = findViewById(R.id.switch1)
+        if (switch1.isChecked) {
+            sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
+            val pollingRequest = PollingRequest(this)
+            pollingRequest.start()
+        }
     }
 
     override fun onStop() {
