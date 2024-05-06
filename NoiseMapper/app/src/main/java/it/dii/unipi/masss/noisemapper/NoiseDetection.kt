@@ -68,6 +68,8 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         }
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        val graph = Graph(this.applicationContext);
+        graph.makeplot()
         requestPermissions()
     }
 
