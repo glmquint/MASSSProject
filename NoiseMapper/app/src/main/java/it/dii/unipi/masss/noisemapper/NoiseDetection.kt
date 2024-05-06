@@ -22,6 +22,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
+import android.widget.Switch
 import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
 import kotlin.math.log10
@@ -56,19 +57,32 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             // Close the current activity
             onStop()
         }
+
+
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
-        if (gotConfig){
-            println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
 
-            // Initialize Kontakt SDK
-            KontaktSDK.initialize(this);
-            ble_scanner = BLEScanner(this)
+        // check the state of the switch switch1
+        val switch1: Switch = findViewById(R.id.switch1)
+        val isSwitchChecked = switch1.isChecked
+
+        if (isSwitchChecked) {
+            Log.i("NoiseDetection", "Switch has been checked")
+            if (gotConfig){
+                println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
+
+                // Initialize Kontakt SDK
+                KontaktSDK.initialize(this);
+                ble_scanner = BLEScanner(this)
+            }
+            sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+            requestPermissions()
+        } else {
+            Log.i("NoiseDetection", "Switch is not checked")
         }
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        requestPermissions()
+
     }
 
     private fun requestPermissions() {
@@ -199,8 +213,8 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         super.onStart()
         sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
         // create a new thread to start the PollingRequest
-        val pollingRequest = PollingRequest(this)
-        pollingRequest.start()
+        //val pollingRequest = PollingRequest(this)
+        //pollingRequest.start()
     }
 
     override fun onStop() {

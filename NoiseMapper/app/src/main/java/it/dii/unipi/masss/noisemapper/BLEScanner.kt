@@ -65,8 +65,8 @@ class BLEScanner (val activity: NoiseDetection) {
                 lastUpdate = System.currentTimeMillis()
                 pushUpdate(nearest_room, average_noise, tonino)
 
-                val real_room = activity.findViewById<TextView>(R.id.real_room)
-                real_room.text = "You are in: $nearest_room"
+                //val real_room = activity.findViewById<TextView>(R.id.real_room)
+                //real_room.text = "You are in: $nearest_room"
             }
         })
     }
