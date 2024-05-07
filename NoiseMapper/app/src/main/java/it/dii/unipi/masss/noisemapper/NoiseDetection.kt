@@ -24,6 +24,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.widget.Switch
 import androidx.appcompat.widget.SwitchCompat
+import androidx.compose.ui.graphics.Color
 import com.kontakt.sdk.android.common.KontaktSDK
 import kotlin.math.abs
 import kotlin.math.log10
@@ -42,11 +43,12 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     private val REFRESH_RATE = 500
     private val DB_ADJUSTMENT_PROXIMITY_SENSOR = 10
     private var mRecorder : MediaRecorder? = null
-    private var timer = Timer()
+    private var timer: Timer? = null
     private var sensorManager: SensorManager? = null
     private var proximitySensor: Sensor? = null
     private var isNearObject = false
     private var ble_scanner : BLEScanner? = null
+    private var pollingRequest :PollingRequest? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.ble_layout)
@@ -68,21 +70,34 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             KontaktSDK.initialize(this);
             ble_scanner = BLEScanner(this)
         }
-
+        pollingRequest = PollingRequest(this)
         val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.switch1)
         switch1.isChecked = false
         switch1.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                requestPermissions()
                 sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
                 proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-                requestPermissions()
                 sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
-                val pollingRequest = PollingRequest(this)
-                pollingRequest.start()
+                pollingRequest!!.start()
             } else {
                 //stop the polling
                 Log.i("NoiseDetection", "Switch is off")
-
+                pollingRequest!!.stop()
+                if(mRecorder != null){
+                    mRecorder!!.stop()
+                    timer?.cancel()
+                    timer = null
+                }
+                if(ble_scanner != null){
+                    ble_scanner!!.stopScanning()
+                }
+                if(sensorManager != null){
+                    sensorManager!!.unregisterListener(this)
+                }
+                // Clear the view
+                val sound = findViewById<TextView>(R.id.db_level)
+                sound.text = "0.0"
 
             }
         }
@@ -173,7 +188,11 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        timer.scheduleAtFixedRate(RecorderTask(mRecorder!!), 0, REFRESH_RATE.toLong())
+        if (timer == null) {
+            // If timer is not initialized, create and start it
+            timer = Timer()
+            timer?.schedule(RecorderTask(mRecorder!!), 0, REFRESH_RATE.toLong())
+        }
     }
     private inner class RecorderTask(private val recorder: MediaRecorder) : TimerTask() {
         private val sound = findViewById<TextView>(R.id.db_level)
@@ -231,7 +250,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
     override fun onStop() {
         super.onStop()
-        timer.cancel()
+        timer?.cancel()
         sensorManager?.unregisterListener(this)
         mRecorder?.stop()
         mRecorder?.release()
