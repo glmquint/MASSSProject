@@ -42,24 +42,26 @@ class PollingRequest(private val context: Context) {
         timer = null
     }
 
-    private fun performGetRequest(start_from:Long, end_to:Long) {
-        try {
-            val url = URL("$url?start_from=$start_from&end_to=$end_to")
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
+     fun performGetRequest(start_from:Long, end_to:Long) {
+         Thread {
+             try {
+                 val url = URL("$url?start_from=$start_from&end_to=$end_to")
+                 val connection = url.openConnection() as HttpURLConnection
+                 connection.requestMethod = "GET"
 
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                val response = connection.inputStream.bufferedReader().readText()
-                Log.i("PollingRequest", "GET request successful with response: $response")
-            } else {
-                Log.e("PollingRequest", "GET request failed with response code: $responseCode")
-            }
+                 val responseCode = connection.responseCode
+                 if (responseCode == HttpURLConnection.HTTP_OK) {
+                     val response = connection.inputStream.bufferedReader().readText()
+                     Log.i("PollingRequest", "GET request successful with response: $response")
+                 } else {
+                     Log.e("PollingRequest", "GET request failed with response code: $responseCode")
+                 }
 
-            connection.disconnect()
-        } catch (e: Exception) {
-            Log.e("PollingRequest", "GET request failed with exception: $e")
-        }
+                 connection.disconnect()
+             } catch (e: Exception) {
+                 Log.e("PollingRequest", "GET request failed with exception: $e")
+             }
+         }.start()
     }
 }
 

@@ -22,10 +22,19 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
+import android.widget.DatePicker
 import android.widget.Switch
+import android.widget.Toast
+import android.widget.Toast.*
 import androidx.appcompat.widget.SwitchCompat
 import androidx.compose.ui.graphics.Color
+import com.google.android.material.datepicker.MaterialDatePicker
 import com.kontakt.sdk.android.common.KontaktSDK
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.log10
 
@@ -75,12 +84,22 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         switch1.isChecked = false
         switch1.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                // make the date picker invisible
+                val datePicker = findViewById<DatePicker>(R.id.start_date)
+                datePicker.visibility = DatePicker.GONE
+                val datePicker2 = findViewById<DatePicker>(R.id.end_date)
+                datePicker2.visibility = DatePicker.GONE
                 requestPermissions()
                 sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
                 proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
                 sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
                 pollingRequest!!.start()
             } else {
+                // restore the date picker visibility
+                val datePicker = findViewById<DatePicker>(R.id.start_date)
+                datePicker.visibility = DatePicker.VISIBLE
+                val datePicker2 = findViewById<DatePicker>(R.id.end_date)
+                datePicker2.visibility = DatePicker.VISIBLE
                 //stop the polling
                 Log.i("NoiseDetection", "Switch is off")
                 pollingRequest!!.stop()
@@ -101,10 +120,32 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
             }
         }
+        // get the update button
+        val updateButton: Button = findViewById(R.id.update_map)
+        updateButton.setOnClickListener {
+            // check if the switch is off
+            if (!switch1.isChecked) {
+
+                val start_from_timestamp = getTimestamp(findViewById<DatePicker>(R.id.start_date))
+                val end_to_timestamp = getTimestamp(findViewById<DatePicker>(R.id.end_date))
+                Log.i("NoiseDetection", "Start from timestamp: $start_from_timestamp")
+                Log.i("NoiseDetection", "End to timestamp: $end_to_timestamp")
+                pollingRequest!!.performGetRequest(start_from_timestamp, end_to_timestamp)
+            }
+            else{
+                // Create a tost to show the user that you cannot update the map while the switch is on
+                Toast.makeText(applicationContext, "Please turn off the " +
+                        "switch to update the map", Toast.LENGTH_LONG).show()
+            }
+        }
 
 
     }
-
+    private fun getTimestamp(date: DatePicker): Long {
+        val calendar = Calendar.getInstance()
+        calendar.set(date.year, date.month, date.dayOfMonth)
+        return calendar.timeInMillis / 1000
+    }
     private fun requestPermissions() {
         val requiredPermissions =
             arrayOf(Manifest.permission.RECORD_AUDIO) +
