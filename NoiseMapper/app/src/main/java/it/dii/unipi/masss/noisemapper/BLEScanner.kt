@@ -51,7 +51,7 @@ class BLEScanner (val activity: NoiseDetection) {
                 val mutableBeacons = beacons.toMutableList()
                 mutableBeacons.sortBy { it.rssi }
                 val tonino = mutableBeacons[0]
-                val nearest_room = activity.bleConfig.beaconRoomMap[tonino.uniqueId]
+                val nearest_room = activity.bleConfig.beaconRoomMap?.mapping?.get(tonino.uniqueId)
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
                 activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
@@ -59,8 +59,6 @@ class BLEScanner (val activity: NoiseDetection) {
                 activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
                 pushUpdate(nearest_room, average_noise, tonino)
-                val graph = Graph();
-                graph.makeplot(activity.applicationContext)
             }
         })
     }

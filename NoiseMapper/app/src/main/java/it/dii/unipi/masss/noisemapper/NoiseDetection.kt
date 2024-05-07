@@ -60,7 +60,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
         if (gotConfig){
-            println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
+            println(bleConfig.beaconRoomMap?.mapping?.get("bpGG"))
 
             // Initialize Kontakt SDK
             KontaktSDK.initialize(this);
@@ -68,8 +68,10 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         }
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        val graph = Graph(this.applicationContext);
-        graph.makeplot()
+        val graph = Graph(this.applicationContext, bleConfig);
+        graph.makeplot(
+            mapOf("room_BpGG" to 100.0, "room_3hl4" to 200.0)
+        )
         requestPermissions()
     }
 

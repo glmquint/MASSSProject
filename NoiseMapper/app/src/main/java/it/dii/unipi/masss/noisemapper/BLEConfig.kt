@@ -17,8 +17,10 @@ interface FileDownloadCallback {
     fun onFileDownloadError(errorMessage: String)
 }
 
+class ConfigData(val mapping : Map<String, String>, val layout : Map<String, List<Any>>)
+
 class BLEConfig(private val context: Context) {
-    var beaconRoomMap = mutableMapOf<String, String>()
+    var beaconRoomMap : ConfigData? = null
     val url = context.getString(R.string.serverURL) + "/resources/config.json"
     var lock = Object()
 
@@ -60,11 +62,7 @@ class BLEConfig(private val context: Context) {
             synchronized(lock) {
                 val jsonString = readFromFile(context, fileName)
                 // Parse JSON to JsonObject
-                beaconRoomMap = gson.fromJson(jsonString, mutableMapOf<String, String>()::class.java)
-
-                for ((key, value) in beaconRoomMap) {
-                    println("Beacon: $key, Room: $value")
-                }
+                beaconRoomMap = gson.fromJson(jsonString, ConfigData::class.java)
             }
         }
         catch (e: Exception) {
