@@ -30,6 +30,8 @@ import java.util.UUID
 class BLEScanner (val activity: NoiseDetection) {
     private val proximityManager = ProximityManagerFactory.create(activity)
     private var lastUpdate : Long = 0
+    private val json_array_request: ArrayList<String> = ArrayList();
+    private var FLUSH_WINDOW = 2
 
     init {
         setupProximityManager(activity)
@@ -72,9 +74,27 @@ class BLEScanner (val activity: NoiseDetection) {
     }
 
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
+
+        val json = "{\"timestamp\": 1714555855, \"room\": \"$nearest_room\", \"noise\": $average_noise}"
+
+        //push json in the queue
+        json_array_request.add(json)
+
+        //if the array gets gets to a certain size, all the json ar sent to server server
+        if (json_array_request.size == FLUSH_WINDOW){
+            //convert to array to json
+            val json_array = generate_json_from_arraylist()
+            send_json_array(json_array)
+           //send the array of json
+            json_array_request.clear()
+        }
+    }
+
+    private fun send_json_array(json: String) {
+
         // push the updated iBeacon devices to endpoint /beacons
         val url = activity.getString(R.string.serverURL) + "/measurements"
-        val json = "{\"room\": \"$nearest_room\", \"noise\": $average_noise}"
+
         println("Pushing $json to $url")
         val client = OkHttpClient()
         val body = json.toRequestBody("application/json".toMediaTypeOrNull())
@@ -91,6 +111,19 @@ class BLEScanner (val activity: NoiseDetection) {
                 println("Pushed update")
             }
         })
+    }
+
+    private fun generate_json_from_arraylist(): String {
+        var json_array : String
+        json_array = "["
+        for (i in 0 until json_array_request.size) {
+            json_array += json_array_request[i]
+            if(i != json_array_request.size-1){
+                json_array+=","
+            }
+        }
+        json_array += "]"
+        return json_array
     }
 
     class BeaconAdapter(private val beacons: MutableList<IBeaconDevice>) : BaseAdapter() {
@@ -128,3 +161,4 @@ class BLEScanner (val activity: NoiseDetection) {
     }
 
 }
+
