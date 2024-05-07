@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
@@ -14,7 +15,24 @@ class PollingRequest(private val context: Context) {
 
     fun start() {
         timer = fixedRateTimer(initialDelay = 2000, period = interval) {
-            performGetRequest()
+            // Get current time
+            val currentTime = Calendar.getInstance()
+
+            // Get time an hour before
+            val timeAnHourBefore = Calendar.getInstance()
+            timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1)
+
+            // Convert to Unix timestamp
+            val currentUnixTimestamp = currentTime.timeInMillis / 1000
+            val previousHourUnixTimestamp = timeAnHourBefore.timeInMillis / 1000
+
+            // Log the results
+            Log.i("PollingRequest", "Current time: ${currentTime.time}")
+            Log.i("PollingRequest", "Unix timestamp of current time: $currentUnixTimestamp")
+
+            Log.i("PollingRequest", "Time an hour before: ${timeAnHourBefore.time}")
+            Log.i("PollingRequest", "Unix timestamp of time an hour before: $previousHourUnixTimestamp")
+            performGetRequest(previousHourUnixTimestamp,currentUnixTimestamp)
         }
     }
 
@@ -24,9 +42,9 @@ class PollingRequest(private val context: Context) {
         timer = null
     }
 
-    private fun performGetRequest() {
+    private fun performGetRequest(start_from:Long, end_to:Long) {
         try {
-            val url = URL(url)
+            val url = URL("$url?start_from=$start_from&end_to=$end_to")
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
 
