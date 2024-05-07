@@ -59,7 +59,6 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             onStop()
         }
 
-
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
@@ -69,17 +68,22 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             KontaktSDK.initialize(this);
             ble_scanner = BLEScanner(this)
         }
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        requestPermissions()
+
         val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.switch1)
+        switch1.isChecked = false
         switch1.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+                proximitySensor = sensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+                requestPermissions()
                 sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
                 val pollingRequest = PollingRequest(this)
                 pollingRequest.start()
             } else {
+                //stop the polling
                 Log.i("NoiseDetection", "Switch is off")
+
+
             }
         }
 
@@ -213,13 +217,17 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
     override fun onStart() {
         super.onStart()
         // if the switch is checked, start the BLE scanning
-        val switch1: SwitchCompat = findViewById(R.id.switch1)
+        /*
+        val switch1: Switch = findViewById(R.id.switch1)
         if (switch1.isChecked) {
+            Log.i("NoiseDetection", "Switch is on")
             sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
             val pollingRequest = PollingRequest(this)
             pollingRequest.start()
         }
+        */
     }
+
 
     override fun onStop() {
         super.onStop()

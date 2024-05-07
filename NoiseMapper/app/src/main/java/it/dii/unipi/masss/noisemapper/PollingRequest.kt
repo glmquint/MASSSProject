@@ -4,15 +4,24 @@ import android.content.Context
 import android.util.Log
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class PollingRequest(private val context: Context) {
     private val url = context.getString(R.string.serverURL) + "/measurements"
     private val interval = 10000L
+    private var timer: Timer? = null
+
     fun start() {
-        fixedRateTimer(initialDelay = 2000, period = interval) {
+        timer = fixedRateTimer(initialDelay = 2000, period = interval) {
             performGetRequest()
         }
+    }
+
+    // Stop the timer
+    fun stop() {
+        timer?.cancel()
+        timer = null
     }
 
     private fun performGetRequest() {
