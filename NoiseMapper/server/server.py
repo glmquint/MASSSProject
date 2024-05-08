@@ -1,7 +1,10 @@
+import os
 from flask import Flask,request, send_from_directory
 import sqlite3
 from time import time
 app = Flask(__name__)
+if not os.path.exists('db'):
+    os.makedirs('db')
 conn = sqlite3.connect('db/mapdata.db', check_same_thread=False)
 c = conn.cursor()
 
