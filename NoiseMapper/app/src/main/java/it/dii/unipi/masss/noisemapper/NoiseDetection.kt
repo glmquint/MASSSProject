@@ -63,6 +63,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.ble_layout)
         val button: Button = findViewById(R.id.stop_ble)
         button.setOnClickListener {
+            switchOff()
             // Create an Intent to return to the main activity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
@@ -95,25 +96,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                 sensorManager?.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
                 pollingRequest!!.start()
             } else {
-                // restore the date picker visibility
-                val datePicker = findViewById<DatePicker>(R.id.start_date)
-                datePicker.visibility = DatePicker.VISIBLE
-                val datePicker2 = findViewById<DatePicker>(R.id.end_date)
-                datePicker2.visibility = DatePicker.VISIBLE
-                //stop the polling
-                Log.i("NoiseDetection", "Switch is off")
-                pollingRequest!!.stop()
-                if(mRecorder != null){
-                    mRecorder!!.stop()
-                    timer?.cancel()
-                    timer = null
-                }
-                if(ble_scanner != null){
-                    ble_scanner!!.stopScanning()
-                }
-                if(sensorManager != null){
-                    sensorManager!!.unregisterListener(this)
-                }
+                switchOff()
                 // Clear the view
                 val sound = findViewById<TextView>(R.id.db_level)
                 sound.text = "0.0"
@@ -125,12 +108,12 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         updateButton.setOnClickListener {
             // check if the switch is off
             if (!switch1.isChecked) {
-
                 val start_from_timestamp = getTimestamp(findViewById<DatePicker>(R.id.start_date))
                 val end_to_timestamp = getTimestamp(findViewById<DatePicker>(R.id.end_date))
                 Log.i("NoiseDetection", "Start from timestamp: $start_from_timestamp")
                 Log.i("NoiseDetection", "End to timestamp: $end_to_timestamp")
                 pollingRequest!!.performGetRequest(start_from_timestamp, end_to_timestamp)
+                pollingRequest!!.stop()
             }
             else{
                 // Create a tost to show the user that you cannot update the map while the switch is on
@@ -141,6 +124,28 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
 
     }
+    fun switchOff(){
+        // restore the date picker visibility
+        val datePicker = findViewById<DatePicker>(R.id.start_date)
+        datePicker.visibility = DatePicker.VISIBLE
+        val datePicker2 = findViewById<DatePicker>(R.id.end_date)
+        datePicker2.visibility = DatePicker.VISIBLE
+        //stop the polling
+        Log.i("NoiseDetection", "Switch is off")
+        pollingRequest!!.stop()
+        if(mRecorder != null){
+            mRecorder!!.stop()
+            timer?.cancel()
+            timer = null
+        }
+        if(ble_scanner != null){
+            ble_scanner!!.stopScanning()
+        }
+        if(sensorManager != null){
+            sensorManager!!.unregisterListener(this)
+        }
+    }
+
     private fun getTimestamp(date: DatePicker): Long {
         val calendar = Calendar.getInstance()
         calendar.set(date.year, date.month, date.dayOfMonth)
@@ -291,11 +296,13 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
     override fun onStop() {
         super.onStop()
-        timer?.cancel()
+        /*timer?.cancel()
         sensorManager?.unregisterListener(this)
         mRecorder?.stop()
         mRecorder?.release()
         mRecorder = null
+
+         */
     }
 
     override fun onRestart() {
