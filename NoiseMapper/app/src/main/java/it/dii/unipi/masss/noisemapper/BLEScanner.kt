@@ -106,11 +106,11 @@ class BLEScanner (val activity: NoiseDetection) {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                println("Failed to push update")
+                Log.d("NoiseMapper","Failed to push update")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                println("Pushed update")
+                Log.d("NoiseMapper","Failed to push update")
             }
         })
     }
