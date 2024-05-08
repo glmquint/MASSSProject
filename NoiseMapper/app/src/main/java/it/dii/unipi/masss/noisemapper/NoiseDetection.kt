@@ -23,17 +23,9 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.widget.DatePicker
-import android.widget.Switch
 import android.widget.Toast
-import android.widget.Toast.*
 import androidx.appcompat.widget.SwitchCompat
-import androidx.compose.ui.graphics.Color
-import com.google.android.material.datepicker.MaterialDatePicker
 import com.kontakt.sdk.android.common.KontaktSDK
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.log10
@@ -41,7 +33,6 @@ import kotlin.math.log10
 
 class NoiseDetection : AppCompatActivity(), SensorEventListener {
     lateinit var bleConfig: BLEConfig
-    private var gotConfig: Boolean = false
     val map_noise_level = mutableMapOf<Long , Double>()
     private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
     private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
@@ -71,8 +62,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         }
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
-        gotConfig = bleConfig.getConfig()
-        if (gotConfig){
+        if (bleConfig.gotConfig()){
             //println(bleConfig.beaconRoomMap?.mapping?.get("bpGG"))
             // Initialize Kontakt SDK
             KontaktSDK.initialize(this);
@@ -131,9 +121,9 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
         //stop the polling
         Log.i("NoiseDetection", "Switch is off")
-        pollingRequest!!.stop()
+        pollingRequest?.stop()
         if(mRecorder != null){
-            mRecorder!!.stop()
+            mRecorder?.stop()
             timer?.cancel()
             timer = null
         }
