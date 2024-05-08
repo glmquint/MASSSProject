@@ -80,6 +80,7 @@ class BLEScanner (val activity: NoiseDetection) {
     }
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
 
+        //TODO bisogna inviare il timestamp, visto che se lo calcola il server?
         val json = "{\"timestamp\": 1714555855, \"room\": \"$nearest_room\", \"noise\": $average_noise}"
 
         //push json in the queue
