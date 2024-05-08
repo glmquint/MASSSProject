@@ -63,19 +63,17 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.ble_layout)
         val button: Button = findViewById(R.id.stop_ble)
         button.setOnClickListener {
-            switchOff()
             // Create an Intent to return to the main activity
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             // Close the current activity
             onStop()
         }
-
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
         gotConfig = bleConfig.getConfig()
         if (gotConfig){
-            //println(bleConfig.beaconRoomMap["beacon1"]) // should print "room1"
+            //println(bleConfig.beaconRoomMap?.mapping?.get("bpGG"))
             // Initialize Kontakt SDK
             KontaktSDK.initialize(this);
             ble_scanner = BLEScanner(this)
@@ -267,7 +265,6 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                         sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.low_noise))
                     }
                 }
-
             }
         }
     }
@@ -293,16 +290,9 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         */
     }
 
-
     override fun onStop() {
         super.onStop()
-        /*timer?.cancel()
-        sensorManager?.unregisterListener(this)
-        mRecorder?.stop()
-        mRecorder?.release()
-        mRecorder = null
-
-         */
+        switchOff()
     }
 
     override fun onRestart() {

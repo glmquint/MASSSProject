@@ -1,10 +1,21 @@
 {
-  "bpGG": "room_BpGG",
-  "3hl4": "room_3hl4",
-  "Tvvr": "room_Tvvr",
-  "LmGw": "room_LmGw",
-  "hWkm": "room_hWkm",
-  "6zLh": "room_6zLh",
-  "wLL9": "room_wLL9",
-  "ekuu": "room_ekuu"
+  "mapping": {
+    "bpGG": "room_BpGG",
+    "3hl4": "room_3hl4",
+    "Tvvr": "room_Tvvr",
+    "hbcm": "room_hbcm",
+    "6Ls6": "room_6Ls6",
+    "LmGw": "room_LmGw",
+    "hWkm": "room_hWkm",
+    "6zLh": "room_6zLh",
+    "wLL9": "room_wLL9",
+    "ekuu": "room_ekuu"
+  },
+  "layout": {
+    "room_name" : ["room_BpGG", "room_3hl4", "room_Tvvr", "room_hbcm", "room_6Ls6", "room_LmGw", "room_hWkm", "room_6zLh", "room_wLL9", "room_ekuu"],
+    "x1" :        [        1.0,         2.0,         3.0,         4.0,         5.0,         6.0,         7.0,         8.0,         9.0,        10.0],
+    "x2" :        [        4.0,         5.0,         6.0,         4.0,         5.0,         6.0,         7.0,         8.0,         9.0,        10.0],
+    "y1" :        [        7.0,         8.0,         9.0,         4.0,         5.0,         6.0,         7.0,         8.0,         9.0,        10.0],
+    "y2" :        [       10.0,        11.0,        12.0,         4.0,         5.0,         6.0,         7.0,         8.0,         9.0,        10.0]
+  }
 }
