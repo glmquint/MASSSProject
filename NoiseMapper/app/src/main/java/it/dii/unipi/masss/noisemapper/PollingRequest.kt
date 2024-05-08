@@ -57,7 +57,13 @@ class PollingRequest(private val context: Context, private val bleConfig: BLECon
                  val responseCode = connection.responseCode
                  grapher.makeplot(mapOf("room_BpGG" to 50.0, "room_3hl4" to 60.0, "room_Tvvr" to 70.0))
                  if (responseCode == HttpURLConnection.HTTP_OK) {
-                     val response = connection.inputStream.bufferedReader().readText()
+                     val gson = Gson()
+                     val response = gson.fromJson(connection.inputStream.bufferedReader().readText(), Map::class.java)["data"]
+                     response as List<Map<String, Any>>
+                     response.groupBy { it["room"] }.forEach { (room, data) ->
+                         val noise = data.map { it["noise"] as Double }.average()
+                     }
+
                      Log.i("PollingRequest", "GET request successful with response: $response")
                  } else {
                      Log.e("PollingRequest", "GET request failed with response code: $responseCode")

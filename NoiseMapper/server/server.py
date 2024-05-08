@@ -6,6 +6,7 @@ app = Flask(__name__)
 if not os.path.exists('db'):
     os.makedirs('db')
 conn = sqlite3.connect('db/mapdata.db', check_same_thread=False)
+conn.row_factory = sqlite3.Row
 c = conn.cursor()
 
 # Create a table if it doesn't exist
@@ -42,9 +43,8 @@ def get_requests():
         
     start_from = int(start_from)
     end_to = int(end_to)
-    c.execute("SELECT * FROM noise_measurements WHERE timestamp >= ? AND timestamp <= ?", (start_from, end_to))
-    rows = c.fetchall()
-    return rows
+    c.execute("SELECT timestamp, room, noise FROM noise_measurements WHERE timestamp >= ? AND timestamp <= ?", (start_from, end_to))
+    return {'data': [dict(row) for row in c.fetchall()]}
 
 @app.route('/resources/<filename>')
 def download_file(filename):
