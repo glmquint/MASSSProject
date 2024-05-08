@@ -74,7 +74,7 @@ class BLEScanner (val activity: NoiseDetection) {
     }
     private fun flashRequest() {
         val json_array = generate_json_from_arraylist()
-        //send the array of json
+        //send the array of json, then clear it
         send_json_array(json_array)
         json_array_request.clear()
     }
