@@ -72,7 +72,12 @@ class BLEScanner (val activity: NoiseDetection) {
             }
         })
     }
-
+    private fun flashRequest() {
+        val json_array = generate_json_from_arraylist()
+        send_json_array(json_array)
+        //send the array of json
+        json_array_request.clear()
+    }
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
 
         val json = "{\"timestamp\": 1714555855, \"room\": \"$nearest_room\", \"noise\": $average_noise}"
@@ -82,11 +87,7 @@ class BLEScanner (val activity: NoiseDetection) {
 
         //if the array gets gets to a certain size, all the json ar sent to server server
         if (json_array_request.size == FLUSH_WINDOW){
-            //convert to array to json
-            val json_array = generate_json_from_arraylist()
-            send_json_array(json_array)
-           //send the array of json
-            json_array_request.clear()
+            flashRequest()
         }
     }
 
@@ -152,6 +153,7 @@ class BLEScanner (val activity: NoiseDetection) {
 
     fun stopScanning() {
         proximityManager.stopScanning()
+        flashRequest() // this is to send the last batch of data also if the window is not full
     }
 
     fun startScanning() {
