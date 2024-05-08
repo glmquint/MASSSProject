@@ -2,10 +2,6 @@ package it.dii.unipi.masss.noisemapper
 
 import android.content.Context
 import org.jetbrains.letsPlot.export.ggsave
-import org.jetbrains.letsPlot.geom.geomBar
-import org.jetbrains.letsPlot.geom.geomBoxplot
-import org.jetbrains.letsPlot.geom.geomLabel
-import org.jetbrains.letsPlot.geom.geomPolygon
 import org.jetbrains.letsPlot.geom.geomRect
 import org.jetbrains.letsPlot.geom.geomText
 import org.jetbrains.letsPlot.ggsize
@@ -18,7 +14,7 @@ class Graph(private val context: Context, private val bleConfig: BLEConfig){
         val room_mapping = bleConfig.beaconRoomMap?.layout
 
         val noiseLevels = room_mapping?.get("room_name")?.map { room_noise[it] }
-        val noiseLabels = room_mapping?.get("room_name")?.map { "$it: ${room_noise[it]}dB" }
+        val noiseLabels = room_mapping?.get("room_name")?.map { "$it: ${room_noise[it]?:"Unknown"} dB" }
         val updatedRoomMapping = room_mapping?.plus(mapOf("noise_level" to noiseLevels, "noise_labels" to noiseLabels))
         var p = letsPlot(data = updatedRoomMapping)
         p += geomRect(alpha = 0.8) {
