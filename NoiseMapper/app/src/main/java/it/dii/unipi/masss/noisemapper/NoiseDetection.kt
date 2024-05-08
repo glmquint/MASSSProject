@@ -58,7 +58,6 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             // Close the current activity
-            onStop()
         }
         // call the class to read the BLEConfig file
         bleConfig = BLEConfig(this.applicationContext)
