@@ -31,8 +31,9 @@ class BLEScanner (val activity: NoiseDetection) {
     private val proximityManager = ProximityManagerFactory.create(activity)
     private var lastUpdate : Long = 0
     private val json_array_request: ArrayList<String> = ArrayList();
-    private var FLUSH_WINDOW = 2
 
+    // obtain flush window from numbers.xml
+    private val FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
     init {
         setupProximityManager(activity)
     }
