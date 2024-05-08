@@ -95,6 +95,10 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
                 pollingRequest!!.start()
             } else {
                 switchOff()
+                val datePicker = findViewById<DatePicker>(R.id.start_date)
+                datePicker.visibility = DatePicker.VISIBLE
+                val datePicker2 = findViewById<DatePicker>(R.id.end_date)
+                datePicker2.visibility = DatePicker.VISIBLE
                 // Clear the view
                 val sound = findViewById<TextView>(R.id.db_level)
                 sound.text = "0.0"
@@ -122,12 +126,9 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
 
 
     }
-    fun switchOff(){
+     private fun switchOff(){
         // restore the date picker visibility
-        val datePicker = findViewById<DatePicker>(R.id.start_date)
-        datePicker.visibility = DatePicker.VISIBLE
-        val datePicker2 = findViewById<DatePicker>(R.id.end_date)
-        datePicker2.visibility = DatePicker.VISIBLE
+
         //stop the polling
         Log.i("NoiseDetection", "Switch is off")
         pollingRequest!!.stop()
