@@ -67,7 +67,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             KontaktSDK.initialize(this);
             ble_scanner = BLEScanner(this)
         }
-        pollingRequest = PollingRequest(this)
+        pollingRequest = PollingRequest(this, bleConfig)
         val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.switch1)
         switch1.isChecked = false
         switch1.setOnCheckedChangeListener { _, isChecked ->

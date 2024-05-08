@@ -2,17 +2,22 @@ package it.dii.unipi.masss.noisemapper
 
 import android.content.Context
 import android.util.Log
+import com.google.gson.Gson
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
-class PollingRequest(private val context: Context) {
+class PollingRequest(private val context: Context, private val bleConfig: BLEConfig) {
     private val url = context.getString(R.string.serverURL) + "/measurements"
     private val interval = 10000L
     private var timer: Timer? = null
+    private val grapher: Graph
 
+    init {
+        grapher = Graph(context, bleConfig)
+    }
     fun start() {
         timer = fixedRateTimer(initialDelay = 2000, period = interval) {
             // Get current time
@@ -50,6 +55,7 @@ class PollingRequest(private val context: Context) {
                  connection.requestMethod = "GET"
 
                  val responseCode = connection.responseCode
+                 grapher.makeplot(mapOf("room_BpGG" to 50.0, "room_3hl4" to 60.0, "room_Tvvr" to 70.0))
                  if (responseCode == HttpURLConnection.HTTP_OK) {
                      val response = connection.inputStream.bufferedReader().readText()
                      Log.i("PollingRequest", "GET request successful with response: $response")
