@@ -134,7 +134,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
         //println("File Contents: $fileContents")
     }
 
-    fun gotConfig(offline: Boolean = false): Boolean {
+    fun gotConfig(): Boolean {
         return successfulConfig
     }
 }
