@@ -74,8 +74,8 @@ class BLEScanner (val activity: NoiseDetection) {
     }
     private fun flashRequest() {
         val json_array = generate_json_from_arraylist()
-        send_json_array(json_array)
         //send the array of json
+        send_json_array(json_array)
         json_array_request.clear()
     }
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
