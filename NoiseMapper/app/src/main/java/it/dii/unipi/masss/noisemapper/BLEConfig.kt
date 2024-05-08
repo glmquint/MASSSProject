@@ -19,10 +19,21 @@ interface FileDownloadCallback {
 
 class ConfigData(val mapping : Map<String, String>, val layout : Map<String, List<Any>>)
 
-class BLEConfig(private val context: Context) {
-    var beaconRoomMap : ConfigData? = null
+class BLEConfig(private val context: Context, offline: Boolean = false) {
+    private val successfulConfig: Boolean
+    lateinit var beaconRoomMap : ConfigData
     val url = context.getString(R.string.serverURL) + "/resources/config.json"
     var lock = Object()
+
+    init {
+        if (!offline) {
+            GetConfigFileFromServer(url)
+            synchronized(lock) {
+                lock.wait()
+            }
+        }
+        successfulConfig = readJSONfile()
+    }
 
     fun writeToFile(context: Context, fileName: String, data: String) {
         try {
@@ -123,14 +134,8 @@ class BLEConfig(private val context: Context) {
         //println("File Contents: $fileContents")
     }
 
-    fun getConfig(offline: Boolean = false): Boolean {
-        if (!offline) {
-            GetConfigFileFromServer(url)
-            synchronized(lock) {
-                lock.wait()
-            }
-        }
-        return readJSONfile()
+    fun gotConfig(offline: Boolean = false): Boolean {
+        return successfulConfig
     }
 }
 // "the value is saved /data/user/0/it.dii.unipi.masss.noisemapper/files/config.json"

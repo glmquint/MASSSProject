@@ -49,7 +49,7 @@ class BLEScanner (val activity: NoiseDetection) {
 
             override fun onIBeaconsUpdated(beacons: MutableList<IBeaconDevice>, region: IBeaconRegion) {
                 // sort the iBeacon devices by rssi
-                val mutableBeacons = beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.keys }.toMutableList()
+                val mutableBeacons = beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.mapping.keys }.toMutableList()
                 if(mutableBeacons.isEmpty()){
                     return
                 }
