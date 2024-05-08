@@ -21,8 +21,8 @@ def save_request():
             measurements = []
             for measurement in data:
                 # Each measurement should be a dictionary with the keys 'timestamp', 'room', and 'noise'
-                if 'timestamp' in measurement and 'room' in measurement and 'noise' in measurement:
-                    measurements.append((measurement['timestamp'], measurement['room'], measurement['noise']))
+                if  'room' in measurement and 'noise' in measurement:
+                    measurements.append((int(time()), measurement['room'], measurement['noise']))
             # Use executemany to insert all the measurements at once
             c.executemany("INSERT INTO noise_measurements (timestamp, room, noise) VALUES (?,?,?)", measurements)
             conn.commit()
