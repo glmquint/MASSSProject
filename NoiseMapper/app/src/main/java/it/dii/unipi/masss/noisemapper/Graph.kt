@@ -31,7 +31,7 @@ class Graph(private val context: Context, private val bleConfig: BLEConfig){
         }
         p += ggtitle("Noise levels of different rooms")
         p += scaleFillGradient(low = "green", high = "red")
-        p += ggsize(700, 350)
-        ggsave(p, filename="output.svg", path=context.filesDir.absolutePath)
+        //p += ggsize(700, 350)
+        ggsave(p, filename="output.html", path=context.filesDir.absolutePath)
     }
 }
