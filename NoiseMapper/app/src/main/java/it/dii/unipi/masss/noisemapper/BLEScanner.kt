@@ -30,7 +30,10 @@ import java.util.UUID
 class BLEScanner (val activity: NoiseDetection) {
     private val proximityManager = ProximityManagerFactory.create(activity)
     private var lastUpdate : Long = 0
+    private val json_array_request: ArrayList<String> = ArrayList();
 
+    // obtain flush window from numbers.xml
+    private val FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
     init {
         setupProximityManager(activity)
     }
@@ -66,11 +69,31 @@ class BLEScanner (val activity: NoiseDetection) {
             }
         })
     }
-
+    private fun flashRequest() {
+        val json_array = generate_json_from_arraylist()
+        //send the array of json, then clear it
+        send_json_array(json_array)
+        json_array_request.clear()
+    }
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
+
+        // Timestamp is added server-side, in order to avoid clock synchronization issues
+        val json = "{\"room\": \"$nearest_room\", \"noise\": $average_noise}"
+
+        //push json in the queue
+        json_array_request.add(json)
+
+        //if the array gets gets to a certain size, all the json ar sent to server server
+        if (json_array_request.size == FLUSH_WINDOW){
+            flashRequest()
+        }
+    }
+
+    private fun send_json_array(json: String) {
+
         // push the updated iBeacon devices to endpoint /beacons
         val url = activity.getString(R.string.serverURL) + "/measurements"
-        val json = "{\"room\": \"$nearest_room\", \"noise\": $average_noise}"
+
         println("Pushing $json to $url")
         val client = OkHttpClient()
         val body = json.toRequestBody("application/json".toMediaTypeOrNull())
@@ -80,13 +103,26 @@ class BLEScanner (val activity: NoiseDetection) {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                println("Failed to push update")
+                Log.d("NoiseMapper","Failed to push update")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                println("Pushed update")
+                Log.d("NoiseMapper","Failed to push update")
             }
         })
+    }
+
+    private fun generate_json_from_arraylist(): String {
+        var json_array : String
+        json_array = "["
+        for (i in 0 until json_array_request.size) {
+            json_array += json_array_request[i]
+            if(i != json_array_request.size-1){
+                json_array+=","
+            }
+        }
+        json_array += "]"
+        return json_array
     }
 
     class BeaconAdapter(private val beacons: MutableList<IBeaconDevice>) : BaseAdapter() {
@@ -115,6 +151,7 @@ class BLEScanner (val activity: NoiseDetection) {
 
     fun stopScanning() {
         proximityManager.stopScanning()
+        flashRequest() // this is to send the last batch of data also if the window is not full
     }
 
     fun startScanning() {
@@ -124,3 +161,4 @@ class BLEScanner (val activity: NoiseDetection) {
     }
 
 }
+
