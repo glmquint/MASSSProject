@@ -1,6 +1,5 @@
 package it.dii.unipi.masss.noisemapper
 
-import android.content.pm.PackageManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -8,10 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.kontakt.sdk.android.ble.device.BeaconRegion
+import com.google.gson.Gson
 import com.kontakt.sdk.android.ble.manager.ProximityManagerFactory
 import com.kontakt.sdk.android.ble.manager.listeners.simple.SimpleIBeaconListener
 import com.kontakt.sdk.android.common.profile.IBeaconDevice
@@ -24,21 +20,20 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
-import java.util.Collections
-import java.util.UUID
 
 class BLEScanner (val activity: NoiseDetection) {
     private val proximityManager = ProximityManagerFactory.create(activity)
-    private var lastUpdate : Long = 0
-    private val json_array_request: ArrayList<String> = ArrayList();
+    private var lastUpdate: Long = 0
+    private var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
 
     // obtain flush window from numbers.xml
     private val FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
+
     init {
         setupProximityManager(activity)
     }
 
-    fun setupProximityManager(activity: NoiseDetection){
+    fun setupProximityManager(activity: NoiseDetection) {
         proximityManager.setIBeaconListener(object : SimpleIBeaconListener() {
             override fun onIBeaconDiscovered(device: IBeaconDevice, region: IBeaconRegion) {
                 // print the discovered iBeacon device
@@ -50,42 +45,54 @@ class BLEScanner (val activity: NoiseDetection) {
                 println("iBeacon: Lost iBeacon device: $device")
             }
 
-            override fun onIBeaconsUpdated(beacons: MutableList<IBeaconDevice>, region: IBeaconRegion) {
+            override fun onIBeaconsUpdated(
+                beacons: MutableList<IBeaconDevice>,
+                region: IBeaconRegion
+            ) {
                 // sort the iBeacon devices by rssi
-                val mutableBeacons = beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.mapping.keys }.toMutableList()
-                if(mutableBeacons.isEmpty()){
+                val mutableBeacons =
+                    beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.mapping.keys }
+                        .toMutableList()
+                if (mutableBeacons.isEmpty()) {
                     return
                 }
                 mutableBeacons.sortBy { it.rssi }
                 val tonino = mutableBeacons[0]
-                val nearest_room = activity.bleConfig.beaconRoomMap?.mapping?.get(tonino.uniqueId)?: "Unknown"
+                val nearest_room =
+                    activity.bleConfig.beaconRoomMap?.mapping?.get(tonino.uniqueId) ?: "Unknown"
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
                 activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
-                val average_noise = activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY}.values.toList().average()
-                activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
+                val average_noise =
+                    activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY }.values.toList()
+                        .average()
+                activity.findViewById<TextView>(R.id.average_noise).text =
+                    "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
                 pushUpdate(nearest_room, average_noise, tonino)
             }
         })
     }
-    private fun flashRequest() {
-        val json_array = generate_json_from_arraylist()
+
+    private fun flushRequest() {
+        //val json_array = generate_json_from_arraylist()
+        val json = Gson()
+        val json_array = json.toJson(json_array_request)
         //send the array of json, then clear it
         send_json_array(json_array)
         json_array_request.clear()
     }
+
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
 
-        // Timestamp is added server-side, in order to avoid clock synchronization issues
-        val json = "{\"room\": \"$nearest_room\", \"noise\": $average_noise}"
 
         //push json in the queue
-        json_array_request.add(json)
+        val m = mapOf("room" to nearest_room, "noise" to average_noise) as Map<String, Any>
+        json_array_request.add(m)
 
         //if the array gets gets to a certain size, all the json ar sent to server server
-        if (json_array_request.size == FLUSH_WINDOW){
-            flashRequest()
+        if (json_array_request.size == FLUSH_WINDOW) {
+            flushRequest()
         }
     }
 
@@ -103,27 +110,15 @@ class BLEScanner (val activity: NoiseDetection) {
             .build()
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.d("NoiseMapper","Failed to push update")
+                Log.d("NoiseMapper", "Failed to push update")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d("NoiseMapper","Failed to push update")
+                Log.d("NoiseMapper", "Failed to push update")
             }
         })
     }
 
-    private fun generate_json_from_arraylist(): String {
-        var json_array : String
-        json_array = "["
-        for (i in 0 until json_array_request.size) {
-            json_array += json_array_request[i]
-            if(i != json_array_request.size-1){
-                json_array+=","
-            }
-        }
-        json_array += "]"
-        return json_array
-    }
 
     class BeaconAdapter(private val beacons: MutableList<IBeaconDevice>) : BaseAdapter() {
 
@@ -141,9 +136,11 @@ class BLEScanner (val activity: NoiseDetection) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val beacon = beacons[position]
-            val view = convertView ?: LayoutInflater.from(parent?.context).inflate(R.layout.beacon_item, parent, false)
+            val view = convertView ?: LayoutInflater.from(parent?.context)
+                .inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
-            view.findViewById<TextView>(R.id.beacon_distance).text = beacon.distance.toString() + "m"
+            view.findViewById<TextView>(R.id.beacon_distance).text =
+                beacon.distance.toString() + "m"
             return view
         }
 
@@ -151,7 +148,7 @@ class BLEScanner (val activity: NoiseDetection) {
 
     fun stopScanning() {
         proximityManager.stopScanning()
-        flashRequest() // this is to send the last batch of data also if the window is not full
+        flushRequest() // this is to send the last batch of data also if the window is not full
     }
 
     fun startScanning() {
@@ -161,4 +158,3 @@ class BLEScanner (val activity: NoiseDetection) {
     }
 
 }
-
