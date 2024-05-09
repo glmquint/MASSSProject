@@ -8,6 +8,7 @@ import java.net.URL
 import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
+import kotlin.math.roundToLong
 
 class PollingRequest(private val context: Context, private val bleConfig: BLEConfig) {
     private val url = context.getString(R.string.serverURL) + "/measurements"
@@ -55,14 +56,15 @@ class PollingRequest(private val context: Context, private val bleConfig: BLECon
                  connection.requestMethod = "GET"
 
                  val responseCode = connection.responseCode
-                 grapher.makeplot(mapOf("room_BpGG" to 50.0, "room_3hl4" to 60.0, "room_Tvvr" to 70.0))
                  if (responseCode == HttpURLConnection.HTTP_OK) {
                      val gson = Gson()
                      val response = gson.fromJson(connection.inputStream.bufferedReader().readText(), Map::class.java)["data"]
                      response as List<Map<String, Any>>
-                     response.groupBy { it["room"] }.forEach { (room, data) ->
-                         val noise = data.map { it["noise"] as Double }.average()
-                     }
+                     //response.groupBy { it["room"] }.map { (room, value) -> room }  // TODO: prepare data to be plotted
+                     val roomNoise = response.groupBy{it["room"]}.mapValues { (_, samples) ->
+                         samples.map{it["noise"]!! as Double}.average()
+                     } as Map<String, Double>
+                     grapher.makeplot(roomNoise)
 
                      Log.i("PollingRequest", "GET request successful with response: $response")
                  } else {

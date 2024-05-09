@@ -14,7 +14,7 @@ class Graph(private val context: Context, private val bleConfig: BLEConfig){
         val room_mapping = bleConfig.beaconRoomMap?.layout
 
         val noiseLevels = room_mapping?.get("room_name")?.map { room_noise[it] }
-        val noiseLabels = room_mapping?.get("room_name")?.map { "$it: ${room_noise[it]?:"Unknown"} dB" }
+        val noiseLabels = room_mapping?.get("room_name")?.map { "$it: ${String.format("%.2f", room_noise[it]?:0.0)} dB" }
         val updatedRoomMapping = room_mapping?.plus(mapOf("noise_level" to noiseLevels, "noise_labels" to noiseLabels))
         var p = letsPlot(data = updatedRoomMapping)
         p += geomRect(alpha = 0.8) {
