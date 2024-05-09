@@ -123,6 +123,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
         pollingRequest?.stop()
         if(mRecorder != null){
             mRecorder?.stop()
+            mRecorder = null
             timer?.cancel()
             timer = null
         }
