@@ -16,4 +16,6 @@
     <string name="noise_sensing_stop_button">Stop sensing</string>
     <string name="update_map_button">Update Map</string>
     <string name="kontakt_io_api_key">fHMdajEKOGTZanfNXEUJRlnZCsgDFYVd</string>
+    <string name="button_main_activity_text">View the noise map and start to sense!</string>
+    <string name="button_select_date_interval">Select date interval</string>
 </resources>

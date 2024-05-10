@@ -25,36 +25,16 @@
             app:layout_constraintVertical_bias="0.06" />
 
         <Button
-            android:id="@+id/button"
-            android:layout_width="182dp"
-            android:layout_height="78dp"
-            android:text="@string/main_text_button"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.497"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.214" />
-
-        <Button
             android:id="@+id/button_noise_map"
             android:layout_width="182dp"
             android:layout_height="78dp"
-            android:text="@string/noise_map"
+            android:text="@string/button_main_activity_text"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.342" />
-
-        <Button
-            android:id="@+id/pickDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pick date"
-            tools:layout_editor_absoluteX="77dp"
-            tools:layout_editor_absoluteY="462dp" />
+            app:layout_constraintVertical_bias="0.499" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
