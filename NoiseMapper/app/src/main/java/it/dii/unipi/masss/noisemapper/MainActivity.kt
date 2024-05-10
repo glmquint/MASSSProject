@@ -13,8 +13,8 @@ class MainActivity : AppCompatActivity(){
         View.OnClickListener { view ->
             when (view.id) {
                 R.id.button_noise_map -> {
-                    Log.i("MainActivity", "Noise map button clicked")
-                    val intent = Intent(this, NoiseMap::class.java)
+                    Log.i("MainActivity", "Starting noise map and sensing activity")
+                    val intent = Intent(this, NoiseActivity::class.java)
                     startActivity(intent)
                 }
             }
