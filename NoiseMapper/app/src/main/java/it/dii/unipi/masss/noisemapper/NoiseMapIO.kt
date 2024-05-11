@@ -26,6 +26,8 @@ class NoiseMapIO (private val context: Context) {
                 synchronized(lock) {
                     try {
                         val connection = URL(url).openConnection() as HttpURLConnection
+                        connection.connectTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
+                        connection.readTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
                         connection.connect()
                         val inputStream = BufferedInputStream(connection.inputStream)
                         val file = File(context.filesDir, fileToSave)
