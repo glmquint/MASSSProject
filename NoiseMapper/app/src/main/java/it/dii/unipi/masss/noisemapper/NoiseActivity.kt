@@ -51,7 +51,9 @@ class NoiseActivity: AppCompatActivity() {
                 val endDate = selection.second
 
                 val noice_map_io = NoiseMapIO(this);
-                noice_map_io.performGetRequest(startDate,endDate)
+                var roomNoise  = noice_map_io.performGetRequest(startDate,endDate)
+                //here i get the room noise
+                //TODO call here the function that creates the map
 
                 Log.i("MainActivity", "Date range selected: $startDate - $endDate")
             }

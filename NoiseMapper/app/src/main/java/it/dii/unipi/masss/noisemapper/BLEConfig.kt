@@ -28,11 +28,11 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
 
     init {
         if (!offline) {
+                GetConfigFileFromServer(url)
+                synchronized(lock) {
+                    lock.wait()
+                }
 
-            GetConfigFileFromServer(url)
-            synchronized(lock) {
-                lock.wait()
-            }
         }
         successfulConfig = readJSONfile()
     }
