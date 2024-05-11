@@ -2,4 +2,5 @@
 <resources>
     <integer name="FLUSH_SAMPLES_WINDOW">10</integer>
     <integer name="TIMEOUT_CONNECTION">5000</integer>
+    <integer name="MILLISECONDS_IN_A_WEEK">604800000</integer>
 </resources>
