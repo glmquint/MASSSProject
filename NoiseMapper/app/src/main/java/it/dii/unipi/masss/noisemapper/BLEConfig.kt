@@ -28,6 +28,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
 
     init {
         if (!offline) {
+
             GetConfigFileFromServer(url)
             synchronized(lock) {
                 lock.wait()
@@ -75,35 +76,6 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
         return true
     }
 
-
-    fun retrieveFileFromServer(url: String, context: Context, callback: FileDownloadCallback, fileToSave: String) {
-
-        Thread {
-            synchronized(lock) {
-                try {
-                    val connection = URL(url).openConnection() as HttpURLConnection
-                    connection.connect()
-                        val inputStream = BufferedInputStream(connection.inputStream)
-                        val file = File(context.filesDir, fileToSave)
-                        Log.d("NoiseMapper", "Config file downloaded, the value is saved in ${file.absolutePath}")
-                        val outputStream = FileOutputStream(file)
-                        inputStream.use { input ->
-                            outputStream.use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                        callback.onFileDownloaded(file.absolutePath)
-                        inputStream.close()
-                        outputStream.close()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    callback.onFileDownloadError("Error: ${e.message}")
-                }
-                lock.notify()
-            }
-        }.start()
-    }
-
     // Usage
     fun GetConfigFileFromServer(url: String) {
         //type the url of the server
@@ -117,9 +89,14 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
                 println(errorMessage)
             }
         }
-
-        retrieveFileFromServer(url, context, callback , fileToSave="config.json")
+        val noise_map_io : NoiseMapIO = NoiseMapIO(context);
+        noise_map_io.retrieveFileFromServer(context, callback , fileToSave="config.json",lock)
+        //val fileName = "data.json"
+        //val fileContents = readFromFile(context, fileName)
+        //println("File Contents: $fileContents")
     }
+
+
 
     fun gotConfig(): Boolean {
         return successfulConfig

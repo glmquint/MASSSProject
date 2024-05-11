@@ -1,5 +1,6 @@
 package it.dii.unipi.masss.noisemapper
 
+import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock.sleep
 import android.util.Log
@@ -19,9 +20,10 @@ class NoiseActivity: AppCompatActivity() {
         setContentView(R.layout.noise_activity)
         Log.i("NoiseActivity", "Noise activity started")
         // call the server function in order to obtain the config file
+        val bleConfig =BLEConfig(this)
         // if no connection check that there is the config file
         // if no config file, show a toast message
-        if (false){
+        if (!bleConfig.gotConfig()){
             Toast.makeText(
                 this,
                 "Please connect to Internet for the first app lunch",
@@ -29,8 +31,6 @@ class NoiseActivity: AppCompatActivity() {
             ).show()
             finish() // go back to main activity
         }
-
-
 
 
         val pickDateButton: Button = findViewById(R.id.pick_date_button)
@@ -49,6 +49,10 @@ class NoiseActivity: AppCompatActivity() {
                 // selection is a Pair<Long, Long> representing the selected range
                 val startDate = selection.first
                 val endDate = selection.second
+
+                val noice_map_io = NoiseMapIO(this);
+                noice_map_io.performGetRequest(startDate,endDate)
+
                 Log.i("MainActivity", "Date range selected: $startDate - $endDate")
             }
             dateRangePicker.show(supportFragmentManager, "dateRangePicker")
