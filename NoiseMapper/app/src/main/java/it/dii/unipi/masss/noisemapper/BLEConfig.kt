@@ -23,7 +23,7 @@ class ConfigData(val mapping : Map<String, String>, val layout : Map<String, Lis
 class BLEConfig(private val context: Context, offline: Boolean = false) {
     private val successfulConfig: Boolean
     lateinit var beaconRoomMap : ConfigData
-    val url = context.getString(R.string.serverURL) + "/resources/config.json"
+    val url = context.getString(R.string.serverURL) + "/resources/"+ context.getString(R.string.config_file_name)
     var lock = Object()
 
     init {
@@ -59,11 +59,8 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
         try {
             val gson = Gson()
 
-
-            val fileName = "config.json"
-
             synchronized(lock) {
-                val jsonString = readFromFile(context, fileName)
+                val jsonString = readFromFile(context, context.getString(R.string.config_file_name))
                 // Parse JSON to JsonObject
                 beaconRoomMap = gson.fromJson(jsonString, ConfigData::class.java)
             }
@@ -82,18 +79,15 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
 
         val callback = object : FileDownloadCallback {
             override fun onFileDownloaded(filePath: String) {
-                println("File downloaded: $filePath")
+                Log.d("NoiseMapper","Config file correctly downloaded")
             }
 
             override fun onFileDownloadError(errorMessage: String) {
-                println(errorMessage)
+                Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
         val noise_map_io : NoiseMapIO = NoiseMapIO(context);
         noise_map_io.retrieveFileFromServer(context, callback , fileToSave="config.json",lock)
-        //val fileName = "data.json"
-        //val fileContents = readFromFile(context, fileName)
-        //println("File Contents: $fileContents")
     }
 
 
