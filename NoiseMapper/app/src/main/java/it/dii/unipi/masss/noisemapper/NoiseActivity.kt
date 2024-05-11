@@ -1,5 +1,12 @@
 package it.dii.unipi.masss.noisemapper
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.webkit.WebView
@@ -7,6 +14,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.app.ActivityCompat
 import com.google.android.material.datepicker.MaterialDatePicker
 
 import androidx.core.util.Pair
@@ -16,11 +24,23 @@ import kotlin.concurrent.fixedRateTimer
 
 class NoiseActivity: AppCompatActivity() {
 
+    private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
+    private lateinit var switchCompat: SwitchCompat
     private lateinit var webView: WebView
     private lateinit var graph: Graph
     private lateinit var timer: Timer
     private lateinit var bleConfig: BLEConfig
     private lateinit var noise_map_io: NoiseMapIO
+    private lateinit var notGrantedPermissions : Array<String>
+    private val requiredPermissions = arrayOf(Manifest.permission.RECORD_AUDIO) +
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+                else arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
+    private var bluetoothAdapter : BluetoothAdapter? = null
     var startDate:Long = 0
     var endDate:Long = 0
 
@@ -39,6 +59,7 @@ class NoiseActivity: AppCompatActivity() {
         noise_map_io = NoiseMapIO(this.resources.getString(R.string.serverURL))
         graph = Graph(filesDir.absolutePath, bleConfig)
         webView = findViewById(R.id.map_web_view)
+        switchCompat = findViewById(R.id.sensing_on_off)
         Log.i("NoiseActivity", "Noise activity started")
         // create the graph
         val timeAnHourBefore = Calendar.getInstance()
@@ -50,6 +71,9 @@ class NoiseActivity: AppCompatActivity() {
         webView.settings.builtInZoomControls = true;
         //webView.webViewClient = WebViewClient()
         webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+        bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
+            getSystemService(android.content.Context.BLUETOOTH_SERVICE)
+        )?.adapter
         startDate = System.currentTimeMillis()-this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
         val pickDateButton: Button = findViewById(R.id.pick_date_button)
@@ -82,7 +106,6 @@ class NoiseActivity: AppCompatActivity() {
         }
 
         // register for the switch compat change event
-        val switchCompat: SwitchCompat = findViewById(R.id.sensing_on_off)
         switchCompat.setOnCheckedChangeListener { _, isChecked ->
             Log.i("NoiseMapper","Switch event")
             if (isChecked){
@@ -101,10 +124,24 @@ class NoiseActivity: AppCompatActivity() {
 
     fun enterSensingState(){
         Log.i("NoiseMapper","Entering sensing state")
-        if (permissionCheck()){
-            initializeSensors()
-            startSensing()
-            scheduleUpdate()
+        while (!permissionCheck()) {
+            requestPermissions()
+        }
+        enableBT()
+        initializeSensors()
+        startSensing()
+        scheduleUpdate()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun enableBT() {
+        // check that bluetooth is enabled, if not, ask the user to enable it
+        if (!(bluetoothAdapter?.isEnabled)!!) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            // start the intent to enable bluetooth with a callback for when the user enables it
+
+            startActivity(enableBtIntent) // TODO: look for a way to get the result of the intent
+            // TODO: probably use startActivityForResult instead of startActivity
         }
     }
 
@@ -113,11 +150,32 @@ class NoiseActivity: AppCompatActivity() {
     }
 
     private fun initializeSensors() {
+        while (!(bluetoothAdapter?.isEnabled)!!) {
+            continue // TODO: if the user doesn't enable the bluetooth, the app will be stuck here forever
+        }
         TODO("Not yet implemented")
     }
 
     private fun permissionCheck(): Boolean {
-        TODO("Not yet implemented")
+        // check if the permissions are already granted
+        notGrantedPermissions = requiredPermissions.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }.toTypedArray()
+        return notGrantedPermissions.isEmpty()
+    }
+
+    private fun requestPermissions(){
+        if (notGrantedPermissions.isEmpty()) {
+            Log.w("NoiseMapper", "Permissions already granted")
+            return
+        }
+        // request the permissions
+        ActivityCompat.requestPermissions(
+            this,
+            notGrantedPermissions,
+            RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE
+        )
+        return
     }
 
     private fun scheduleUpdate() {
@@ -163,6 +221,13 @@ class NoiseActivity: AppCompatActivity() {
 
     private fun stopUpdate() {
         timer.cancel()
+    }
+
+    override fun onStop(){
+        super.onStop()
+        if (inSensingState()){
+            switchCompat.isChecked = false
+        }
     }
 }
 
