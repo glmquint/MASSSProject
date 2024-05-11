@@ -12,8 +12,7 @@ import java.net.URL
 
 //class that performs the config requests to the server and retrieve the array of tuple (room, noise) sending the time interval
 class NoiseMapIO (private val context: Context) {
-
-    private val url = context.getString(R.string.serverURL) + "/measurements"
+    private val url = context.getString(R.string.serverURL)
 
     fun retrieveFileFromServer(
             context: Context,
@@ -25,7 +24,7 @@ class NoiseMapIO (private val context: Context) {
             Thread {
                 synchronized(lock) {
                     try {
-                        val connection = URL(url).openConnection() as HttpURLConnection
+                        val connection = URL(url+"/resources/"+context.getString(R.string.config_file_name)).openConnection() as HttpURLConnection
                         connection.connectTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
                         connection.readTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
                         connection.connect()
@@ -53,13 +52,12 @@ class NoiseMapIO (private val context: Context) {
         }
 
         fun performGetRequest(start_from: Long, end_to: Long): Map<String, Double> {
-
             var roomNoise = mapOf<String, Double>();
             val lock = Object()
             Thread {
                 synchronized(lock) {
                     try {
-                        val url = URL("$url?start_from=$start_from&end_to=$end_to")
+                        val url = URL("$url/measurements?start_from=$start_from&end_to=$end_to")
                         val connection = url.openConnection() as HttpURLConnection
                         connection.requestMethod = "GET"
 
