@@ -92,7 +92,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/switch1"
+        android:id="@+id/sensing_on_off"
         android:layout_width="157dp"
         android:layout_height="90dp"
         android:checked="false"

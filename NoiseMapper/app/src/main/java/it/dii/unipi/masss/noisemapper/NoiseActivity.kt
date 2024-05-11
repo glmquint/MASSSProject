@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import com.google.android.material.datepicker.MaterialDatePicker
 
 import androidx.core.util.Pair
@@ -66,6 +67,13 @@ class NoiseActivity: AppCompatActivity() {
         //webView.webViewClient = WebViewClient()
         // I'd like to to this:
         webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+        // register for the switch compat change event
+        val switchCompat: SwitchCompat = findViewById(R.id.sensing_on_off)
+        switchCompat.setOnCheckedChangeListener { _, isChecked ->
+            // do whatever you need to do when the switch is toggled here
+            Log.i("NoiseMapper","Switch event")
+        }
+
+        }
     }
 
-}

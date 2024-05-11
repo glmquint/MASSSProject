@@ -68,7 +68,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             ble_scanner = BLEScanner(this)
         }
         pollingRequest = PollingRequest(this, bleConfig)
-        val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.switch1)
+        val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.sensing_on_off)
         switch1.isChecked = false
         switch1.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
