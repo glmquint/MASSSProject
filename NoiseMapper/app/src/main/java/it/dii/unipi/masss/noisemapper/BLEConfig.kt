@@ -86,7 +86,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
                 Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
-        val noise_map_io : NoiseMapIO = NoiseMapIO(context);
+        val noise_map_io : NoiseMapIO = NoiseMapIO(context.getString(R.string.serverURL));
         noise_map_io.retrieveFileFromServer(context, callback , fileToSave="config.json",lock)
     }
 
