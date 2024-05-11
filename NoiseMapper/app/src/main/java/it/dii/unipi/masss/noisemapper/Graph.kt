@@ -1,15 +1,14 @@
 package it.dii.unipi.masss.noisemapper
 
-import android.content.Context
+import android.util.Log
 import org.jetbrains.letsPlot.export.ggsave
 import org.jetbrains.letsPlot.geom.geomRect
 import org.jetbrains.letsPlot.geom.geomText
-import org.jetbrains.letsPlot.ggsize
 import org.jetbrains.letsPlot.label.ggtitle
 import org.jetbrains.letsPlot.letsPlot
 import org.jetbrains.letsPlot.scale.scaleFillGradient
 
-class Graph(private val context: Context, private val bleConfig: BLEConfig){
+class Graph(private val filesDir: String, private val bleConfig: BLEConfig){
     fun makeplot(room_noise: Map<String, Double>) {
         val room_mapping = bleConfig.beaconRoomMap?.layout
 
@@ -32,6 +31,7 @@ class Graph(private val context: Context, private val bleConfig: BLEConfig){
         p += ggtitle("Noise levels of different rooms")
         p += scaleFillGradient(low = "green", high = "red")
         //p += ggsize(700, 350)
-        ggsave(p, filename="output.html", path=context.filesDir.absolutePath)
+        ggsave(p, filename="output.html", path=filesDir)
+        Log.wtf("Graph", "Graph saved map size: ${room_noise.size}")
     }
 }

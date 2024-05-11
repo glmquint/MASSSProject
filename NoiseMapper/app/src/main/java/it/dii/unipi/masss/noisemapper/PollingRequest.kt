@@ -8,7 +8,6 @@ import java.net.URL
 import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
-import kotlin.math.roundToLong
 
 class PollingRequest(private val context: Context, private val bleConfig: BLEConfig) {
     private val url = context.getString(R.string.serverURL) + "/measurements"
@@ -17,7 +16,7 @@ class PollingRequest(private val context: Context, private val bleConfig: BLECon
     private val grapher: Graph
 
     init {
-        grapher = Graph(context, bleConfig)
+        grapher = Graph(context.filesDir.absolutePath, bleConfig)
     }
     fun start() {
         timer = fixedRateTimer(initialDelay = 2000, period = interval) {
