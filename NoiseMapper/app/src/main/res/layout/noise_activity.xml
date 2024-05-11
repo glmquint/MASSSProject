@@ -12,6 +12,7 @@
         tools:layout_editor_absoluteY="1dp">
 
         <WebView
+            android:id="@+id/map_web_view"
             android:layout_width="391dp"
             android:layout_height="402dp"
             app:layout_constraintBottom_toBottomOf="parent"

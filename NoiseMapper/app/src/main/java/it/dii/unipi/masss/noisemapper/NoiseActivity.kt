@@ -1,10 +1,13 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.os.Bundle
+import android.os.SystemClock.sleep
 import android.util.Log
 import android.view.View
+import android.webkit.WebView
 import android.widget.Button
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.datepicker.MaterialDatePicker
 
@@ -13,6 +16,22 @@ import androidx.core.util.Pair
 class NoiseActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.noise_activity)
+        Log.i("NoiseActivity", "Noise activity started")
+        // call the server function in order to obtain the config file
+        // if no connection check that there is the config file
+        // if no config file, show a toast message
+        if (false){
+            Toast.makeText(
+                this,
+                "Please connect to Internet for the first app lunch",
+                Toast.LENGTH_LONG
+            ).show()
+            finish() // go back to main activity
+        }
+
+
+
 
         val pickDateButton: Button = findViewById(R.id.pick_date_button)
         pickDateButton.setOnClickListener {
@@ -34,6 +53,13 @@ class NoiseActivity: AppCompatActivity() {
             }
             dateRangePicker.show(supportFragmentManager, "dateRangePicker")
         }
+
+        val webView : WebView = findViewById(R.id.map_web_view)
+        webView.settings.javaScriptEnabled = true;
+        webView.settings.allowFileAccess = true;
+        //webView.webViewClient = WebViewClient()
+        // I'd like to to this:
+        webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
     }
 
 }

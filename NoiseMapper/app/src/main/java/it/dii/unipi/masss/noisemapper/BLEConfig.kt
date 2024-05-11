@@ -1,6 +1,7 @@
 package it.dii.unipi.masss.noisemapper
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.google.gson.Gson
 import java.io.BufferedReader
@@ -35,16 +36,6 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
         successfulConfig = readJSONfile()
     }
 
-    fun writeToFile(context: Context, fileName: String, data: String) {
-        try {
-            val fileOutputStream: FileOutputStream = context.openFileOutput(fileName, Context.MODE_PRIVATE)
-            fileOutputStream.write(data.toByteArray())
-            fileOutputStream.close()
-            println("Data has been written to the file.")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
     fun readFromFile(context: Context, fileName: String): String {
         val stringBuilder = StringBuilder()
         try {
@@ -77,9 +68,8 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
             }
         }
         catch (e: Exception) {
-            println("errore")
+            Log.i("NoiseMapper", "Error reading JSON config file")
             e.printStackTrace()
-            Toast.makeText(context, "Error: Unable to retrieve configuration file. Please check you internet connection", Toast.LENGTH_LONG).show()
             return false
         }
         return true
@@ -95,7 +85,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
                     connection.connect()
                         val inputStream = BufferedInputStream(connection.inputStream)
                         val file = File(context.filesDir, fileToSave)
-                        println("files_downaload $file")
+                        Log.d("NoiseMapper", "Config file downloaded, the value is saved in ${file.absolutePath}")
                         val outputStream = FileOutputStream(file)
                         inputStream.use { input ->
                             outputStream.use { output ->
@@ -129,9 +119,6 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
         }
 
         retrieveFileFromServer(url, context, callback , fileToSave="config.json")
-        //val fileName = "data.json"
-        //val fileContents = readFromFile(context, fileName)
-        //println("File Contents: $fileContents")
     }
 
     fun gotConfig(): Boolean {
