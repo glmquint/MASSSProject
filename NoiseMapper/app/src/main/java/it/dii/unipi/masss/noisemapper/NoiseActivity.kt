@@ -19,7 +19,7 @@ import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
-abstract class NoiseActivity: AppCompatActivity() {
+class NoiseActivity: AppCompatActivity() {
 
     private lateinit var graph: Graph
     private lateinit var timer: Timer
@@ -132,8 +132,6 @@ abstract class NoiseActivity: AppCompatActivity() {
     private fun scheduleUpdate() {
         // start a timer
         timer = fixedRateTimer(initialDelay = 2000, period = 10*1000) {
-            // Get current time
-
             updateMap()
         }
     }
