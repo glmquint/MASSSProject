@@ -73,13 +73,18 @@ class NoiseMapIO (private val url: String) {
                             response as List<Map<String, Any>>
 
                             //response.groupBy { it["room"] }.map { (room, value) -> room }  // TODO: prepare data to be plotted
-                            roomNoise = response.groupBy { it["room"] }.mapValues { (_, samples) ->
-                                samples.map { it["noise"]!! as Double }.average()
-                            } as Map<String, Double>
+                            try{
+                                roomNoise = response.filter{ it["noise"] != null }.groupBy { it["room"] }
+                                    .mapValues { (_, samples) ->
+                                    samples.map { it["noise"]!! as Double }.average()
+                                } as Map<String, Double>
+                            } catch (e: Exception){
+                                Log.e("PollingRequest", "noise map averaging failed with exception: $e")
+                            }
 
                             Log.i(
                                 "PollingRequest",
-                                "GET request successful with response: $response"
+                                "GET request successful with response: $roomNoise"
                             )
                         } else {
                             Log.e(

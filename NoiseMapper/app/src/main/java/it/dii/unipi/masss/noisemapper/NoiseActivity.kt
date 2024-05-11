@@ -1,14 +1,9 @@
 package it.dii.unipi.masss.noisemapper
 
-import android.content.Context
 import android.os.Bundle
-import android.os.SystemClock
-import android.os.SystemClock.sleep
 import android.util.Log
-import android.view.View
 import android.webkit.WebView
 import android.widget.Button
-import android.widget.DatePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -21,6 +16,7 @@ import kotlin.concurrent.fixedRateTimer
 
 class NoiseActivity: AppCompatActivity() {
 
+    private lateinit var webView: WebView
     private lateinit var graph: Graph
     private lateinit var timer: Timer
     private lateinit var bleConfig: BLEConfig
@@ -32,12 +28,6 @@ class NoiseActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_activity)
         bleConfig = BLEConfig(this)
-        noise_map_io = NoiseMapIO(this.resources.getString(R.string.serverURL))
-        graph = Graph(this, bleConfig)
-        Log.i("NoiseActivity", "Noise activity started")
-        // call the server function in order to obtain the config file
-        // if no connection check that there is the config file
-        // if no config file, show a toast message
         if (!bleConfig.gotConfig()){
             Toast.makeText(
                 this,
@@ -46,17 +36,19 @@ class NoiseActivity: AppCompatActivity() {
             ).show()
             finish() // go back to main activity
         }
+        noise_map_io = NoiseMapIO(this.resources.getString(R.string.serverURL))
+        graph = Graph(filesDir.absolutePath, bleConfig)
+        webView = findViewById(R.id.map_web_view)
+        Log.i("NoiseActivity", "Noise activity started")
         // create the graph
-        var roomNoise  = noise_map_io.performGetRequest(System.currentTimeMillis()-this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK), System.currentTimeMillis())
+        val timeAnHourBefore = Calendar.getInstance()
+        timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1*24*7*4) // TODO: nocheckin
+        updateMap(startTS = timeAnHourBefore.timeInMillis)
 
-        graph.makeplot(roomNoise) //
-
-        val webView : WebView = findViewById(R.id.map_web_view)
         webView.settings.javaScriptEnabled = true;
         webView.settings.allowFileAccess = true;
         webView.settings.builtInZoomControls = true;
         //webView.webViewClient = WebViewClient()
-        // I'd like to to this:
         webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
         startDate = System.currentTimeMillis()-this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
@@ -79,7 +71,6 @@ class NoiseActivity: AppCompatActivity() {
                     endDate = selection.second
                     //here i get the room noise
                     graph.makeplot(noise_map_io.performGetRequest(startDate, endDate))
-                    // webView.loadUrl("file://" + filesDir.absolutePath + "/output.html") // TODO: check if we really need this line
                     Log.i("MainActivity", "Date range selected: $startDate - $endDate")
                     updateMap(startDate, endDate)
             }
@@ -157,7 +148,7 @@ class NoiseActivity: AppCompatActivity() {
             "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
         )
         graph.makeplot(noise_map_io.performGetRequest(previousHourUnixTimestamp / 1000, currentUnixTimestamp / 1000))
-
+        webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
     }
 
     fun exitSensingState(){
