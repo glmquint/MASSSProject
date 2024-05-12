@@ -54,7 +54,9 @@ class NoiseActivity: AppCompatActivity() {
                 "Please connect to Internet for the first app lunch",
                 Toast.LENGTH_LONG
             ).show()
-            finish() // go back to main activity
+            intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            return
         }
         noise_map_io = NoiseMapIO(this.resources.getString(R.string.serverURL))
         graph = Graph(filesDir.absolutePath, bleConfig)
