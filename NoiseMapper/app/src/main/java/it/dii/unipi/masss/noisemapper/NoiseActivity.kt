@@ -3,14 +3,15 @@ package it.dii.unipi.masss.noisemapper
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -20,16 +21,24 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import androidx.core.util.Pair
 import java.util.Calendar
 import java.util.Timer
+import java.util.TimerTask
 import kotlin.concurrent.fixedRateTimer
+import kotlin.math.abs
+import kotlin.math.log10
 
 class NoiseActivity: AppCompatActivity() {
 
+    private lateinit var webviewUpdateTimer: Timer
+    val map_noise_level: MutableMap<Long, Double> = mutableMapOf()
+    private lateinit var noise_microphone: NoiseMicrophone
+    private lateinit var ble_scanner: BLEScanner
+    private lateinit var pickDateButton: Button
     private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
     private lateinit var switchCompat: SwitchCompat
     private lateinit var webView: WebView
     private lateinit var graph: Graph
-    private lateinit var timer: Timer
-    private lateinit var bleConfig: BLEConfig
+    private lateinit var updateMapTimer: Timer
+    lateinit var bleConfig: BLEConfig
     private lateinit var noise_map_io: NoiseMapIO
     private lateinit var notGrantedPermissions : Array<String>
     private val requiredPermissions = arrayOf(Manifest.permission.RECORD_AUDIO) +
@@ -78,7 +87,7 @@ class NoiseActivity: AppCompatActivity() {
         )?.adapter
         startDate = System.currentTimeMillis()-this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
-        val pickDateButton: Button = findViewById(R.id.pick_date_button)
+        pickDateButton = findViewById(R.id.pick_date_button)
         pickDateButton.setOnClickListener {
             val dateRangePicker =
                 MaterialDatePicker.Builder.dateRangePicker()
@@ -90,20 +99,16 @@ class NoiseActivity: AppCompatActivity() {
                         )
                     )
                     .build()
-                    dateRangePicker.addOnPositiveButtonClickListener { selection ->
-                    // selection is a Pair<Long, Long> representing the selected range
-
-                    startDate = selection.first
-                    endDate = selection.second
-                    //here i get the room noise
-                    graph.makeplot(noise_map_io.performGetRequest(startDate, endDate))
-                    Log.i("MainActivity", "Date range selected: $startDate - $endDate")
-                    updateMap(startDate, endDate)
+            dateRangePicker.addOnPositiveButtonClickListener { selection ->
+                startDate = selection.first
+                endDate = selection.second
+                Log.i("MainActivity", "Date range selected: $startDate - $endDate")
+                updateMap(startDate, endDate)
             }
             if (inSensingState()) {
-                dateRangePicker.show(supportFragmentManager, "dateRangePicker")
-            } else {
                 updateMap()
+            } else {
+                dateRangePicker.show(supportFragmentManager, "dateRangePicker")
             }
         }
 
@@ -125,6 +130,7 @@ class NoiseActivity: AppCompatActivity() {
     }
 
     fun enterSensingState(){
+        pickDateButton.text = getString(R.string.refresh_map)
         Log.i("NoiseMapper","Entering sensing state")
         while (!permissionCheck()) {
             requestPermissions()
@@ -142,21 +148,68 @@ class NoiseActivity: AppCompatActivity() {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             // start the intent to enable bluetooth with a callback for when the user enables it
 
-            startActivity(enableBtIntent) // TODO: look for a way to get the result of the intent
+            startActivity(enableBtIntent) // HACK: look for a way to get the result of the intent
             // TODO: probably use startActivityForResult instead of startActivity
         }
     }
 
     private fun startSensing() {
-        TODO("Not yet implemented")
+        noise_microphone.startListening()
+        ble_scanner.startScanning()
+    }
+
+    inner class RecorderTask() : TimerTask() {
+
+        private lateinit var sound: TextView
+        private lateinit var mRecorder: MediaRecorder
+
+        // /!!\ This setup method must be called before the TimerTask is scheduled /!!\
+        // We cannot use the default constructor because those variables are passed by NoiseMicrophone
+        fun setup(mRecorder: MediaRecorder, sound: TextView) {
+            this.mRecorder = mRecorder
+            this.sound = sound
+        }
+        override fun run() {
+            runOnUiThread {
+                val amplitude = mRecorder.maxAmplitude
+                Log.i("NoiseDetection", "Recorder max amplitude is $amplitude")
+                var amplitudeDb = 20 * log10(abs(if (amplitude==0) 1 else amplitude).toDouble())
+                /*
+                if (isNearObject) {
+                    amplitudeDb += DB_ADJUSTMENT_PROXIMITY_SENSOR // TODO: calibrate this value
+                    Log.i("NoiseDetection", "Proximity sensor detected an object")
+                }
+                */
+                val currentTimestamp = System.currentTimeMillis()
+                map_noise_level[currentTimestamp] = amplitudeDb
+                Log.i("NoiseDetection", "Level db is $amplitudeDb at time $currentTimestamp")
+                sound.text = String.format("%.1f dB", amplitudeDb)
+                /*
+                when {
+                    amplitudeDb > 80 -> { // High noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.high_noise))
+                    }
+                    amplitudeDb > 60 -> { // Medium noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.medium_noise))
+                    }
+                    else -> { // Low noise level
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.low_noise))
+                    }
+                }
+                 */
+            }
+        }
     }
 
     private fun initializeSensors() {
         while (!(bluetoothAdapter?.isEnabled)!!) {
-            continue // TODO: if the user doesn't enable the bluetooth, the app will be stuck here forever
+            continue // HACK: if the user doesn't enable the bluetooth, the app will be stuck here forever
         }
-        TODO("Not yet implemented")
+        val recorderTask = RecorderTask()
+        noise_microphone = NoiseMicrophone(cacheDir, findViewById(R.id.db_level), recorderTask)
+        ble_scanner = BLEScanner(this)
     }
+
 
     private fun permissionCheck(): Boolean {
         // check if the permissions are already granted
@@ -182,7 +235,7 @@ class NoiseActivity: AppCompatActivity() {
 
     private fun scheduleUpdate() {
         // start a timer
-        timer = fixedRateTimer(initialDelay = 2000, period = 10*1000) {
+        updateMapTimer = fixedRateTimer(initialDelay = 2000, period = 10*1000) {
             updateMap()
         }
     }
@@ -208,21 +261,25 @@ class NoiseActivity: AppCompatActivity() {
             "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
         )
         graph.makeplot(noise_map_io.performGetRequest(previousHourUnixTimestamp / 1000, currentUnixTimestamp / 1000))
-        webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+        runOnUiThread {
+            webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+        }
     }
 
-    fun exitSensingState(){
+    private fun exitSensingState(){
+        pickDateButton.text = getString(R.string.pick_date)
         Log.i("NoiseMapper","Exiting sensing state")
         stopSensing()
         stopUpdate()
     }
 
     private fun stopSensing() {
-        TODO("Not yet implemented")
+        noise_microphone.stopListening()
+        ble_scanner.stopScanning()
     }
 
     private fun stopUpdate() {
-        timer.cancel()
+        updateMapTimer.cancel()
     }
 
     override fun onStop(){

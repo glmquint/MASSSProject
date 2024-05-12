@@ -8,8 +8,10 @@ import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
 import com.google.gson.Gson
+import com.kontakt.sdk.android.ble.manager.ProximityManager
 import com.kontakt.sdk.android.ble.manager.ProximityManagerFactory
 import com.kontakt.sdk.android.ble.manager.listeners.simple.SimpleIBeaconListener
+import com.kontakt.sdk.android.common.KontaktSDK
 import com.kontakt.sdk.android.common.profile.IBeaconDevice
 import com.kontakt.sdk.android.common.profile.IBeaconRegion
 import okhttp3.Call
@@ -21,8 +23,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-class BLEScanner (val activity: NoiseDetection) {
-    private val proximityManager = ProximityManagerFactory.create(activity)
+class BLEScanner(val activity: NoiseActivity) {
+    private val proximityManager : ProximityManager
     private var lastUpdate: Long = 0
     private var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
 
@@ -30,10 +32,12 @@ class BLEScanner (val activity: NoiseDetection) {
     private val FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
 
     init {
+        KontaktSDK.initialize(activity);
+        proximityManager = ProximityManagerFactory.create(activity)
         setupProximityManager(activity)
     }
 
-    fun setupProximityManager(activity: NoiseDetection) {
+    fun setupProximityManager(activity: NoiseActivity) {
         proximityManager.setIBeaconListener(object : SimpleIBeaconListener() {
             override fun onIBeaconDiscovered(device: IBeaconDevice, region: IBeaconRegion) {
                 // print the discovered iBeacon device
@@ -57,19 +61,19 @@ class BLEScanner (val activity: NoiseDetection) {
                     return
                 }
                 mutableBeacons.sortBy { it.rssi }
-                val tonino = mutableBeacons[0]
+                val strongestBeacon = mutableBeacons[0]
                 val nearest_room =
-                    activity.bleConfig.beaconRoomMap?.mapping?.get(tonino.uniqueId) ?: "Unknown"
+                    activity.bleConfig.beaconRoomMap?.mapping?.get(strongestBeacon.uniqueId) ?: "Unknown"
+                activity.findViewById<TextView>(R.id.current_room).text = "Current room: $nearest_room"
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
-                activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
+                // activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
                 val average_noise =
                     activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY }.values.toList()
                         .average()
-                activity.findViewById<TextView>(R.id.average_noise).text =
-                    "Average noise level: $average_noise"
+                // activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
-                pushUpdate(nearest_room, average_noise, tonino)
+                pushUpdate(nearest_room, average_noise, strongestBeacon)
             }
         })
     }

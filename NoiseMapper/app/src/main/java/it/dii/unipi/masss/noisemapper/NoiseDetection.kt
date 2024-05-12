@@ -65,7 +65,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             //println(bleConfig.beaconRoomMap?.mapping?.get("bpGG"))
             // Initialize Kontakt SDK
             KontaktSDK.initialize(this);
-            ble_scanner = BLEScanner(this)
+            ble_scanner = null; //BLEScanner(this)
         }
         pollingRequest = PollingRequest(this, bleConfig)
         val switch1 : SwitchCompat = findViewById<SwitchCompat>(R.id.sensing_on_off)

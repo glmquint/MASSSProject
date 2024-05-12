@@ -32,6 +32,5 @@ class Graph(private val filesDir: String, private val bleConfig: BLEConfig){
         p += scaleFillGradient(low = "green", high = "red")
         //p += ggsize(700, 350)
         ggsave(p, filename="output.html", path=filesDir)
-        Log.wtf("Graph", "Graph saved map size: ${room_noise.size}")
     }
 }

@@ -26,29 +26,46 @@
             android:id="@+id/sensing_on_off"
             android:layout_width="157dp"
             android:layout_height="90dp"
+            android:layout_marginEnd="60dp"
             android:checked="false"
             android:text="Sensing"
             android:textOff="OFF"
             android:textOn="ON"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.845"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.638"
+            app:layout_constraintTop_toBottomOf="@+id/map_web_view"
             tools:checked="false" />
 
         <Button
             android:id="@+id/pick_date_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_select_date_interval"
+            android:text="@string/pick_date"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.104"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.625" />
+
+        <TextView
+            android:id="@+id/db_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="72dp"
+            android:layout_marginTop="56dp"
+            android:text="Nan"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pick_date_button" />
+
+        <TextView
+            android:id="@+id/current_room"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="52dp"
+            android:layout_marginTop="36dp"
+            android:text="somewhere"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/db_level" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

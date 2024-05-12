@@ -48,9 +48,11 @@ def get_requests():
     if not start_from.isdigit() or not end_to.isdigit():
         start_from = int(time()) - 3600*24*7
         end_to = int(time())
+    '''
     if int(start_from) > int(end_to) or int(end_to) > int(time()) or int(start_from) < 0:
         start_from = int(time()) - 3600*24*7
         end_to = int(time())
+   '''
         
     start_from = int(start_from)
     end_to = int(end_to)
