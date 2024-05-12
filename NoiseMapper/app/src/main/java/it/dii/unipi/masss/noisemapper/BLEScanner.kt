@@ -60,14 +60,14 @@ class BLEScanner(val activity: NoiseActivity) {
                 if (mutableBeacons.isEmpty()) {
                     return
                 }
-                mutableBeacons.sortBy { it.rssi }
+                mutableBeacons.sortByDescending { it.rssi }
                 val strongestBeacon = mutableBeacons[0]
                 val nearest_room =
-                    activity.bleConfig.beaconRoomMap?.mapping?.get(strongestBeacon.uniqueId) ?: "Unknown"
+                    activity.bleConfig.beaconRoomMap.mapping.get(strongestBeacon.uniqueId) ?: "Unknown"
                 activity.findViewById<TextView>(R.id.current_room).text = "Current room: $nearest_room"
                 // print the updated iBeacon devices
                 println("iBeacon: Updated iBeacon devices: $beacons")
-                // activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(beacons)
+                activity.findViewById<ListView>(R.id.beacon_list).adapter = BeaconAdapter(mutableBeacons)
                 val average_noise =
                     activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY }.values.toList()
                         .average()
