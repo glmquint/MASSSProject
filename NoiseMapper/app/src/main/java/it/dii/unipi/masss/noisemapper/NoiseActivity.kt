@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.datepicker.MaterialDatePicker
 
 import androidx.core.util.Pair
@@ -56,6 +57,7 @@ class NoiseActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_activity)
+        Log.i("NoiseActivity", "Noise activity started")
         bleConfig = BLEConfig(this)
         if (!bleConfig.gotConfig()){
             Toast.makeText(
@@ -68,20 +70,7 @@ class NoiseActivity: AppCompatActivity() {
             return
         }
         noise_map_io = NoiseMapIO(this)
-        graph = Graph(filesDir.absolutePath, bleConfig)
-        webView = findViewById(R.id.map_web_view)
-        switchCompat = findViewById(R.id.sensing_on_off)
-        Log.i("NoiseActivity", "Noise activity started")
-        // create the graph
-        val timeAnHourBefore = Calendar.getInstance()
-        timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1*24*7*4) // TODO: nocheckin
-        updateMap(startTS = timeAnHourBefore.timeInMillis)
-
-        webView.settings.javaScriptEnabled = true;
-        webView.settings.allowFileAccess = true;
-        webView.settings.builtInZoomControls = true;
-        //webView.webViewClient = WebViewClient()
-        webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+        createGraphUI()
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
@@ -116,15 +105,30 @@ class NoiseActivity: AppCompatActivity() {
         switchCompat.setOnCheckedChangeListener { _, isChecked ->
             Log.i("NoiseMapper","Switch event")
             if (isChecked){
-                Log.i("NoiseMapper","Switch is on")
+                Log.i("NoiseMapper","Switch is ON: entering in sensing state")
                 enterSensingState()
             }else{
-                Log.i("NoiseMapper","Switch is off")
+                Log.i("NoiseMapper","Switch is OFF: exiting sensing state")
                 exitSensingState()
             }
         }
     }
 
+    fun createGraphUI(){
+        graph = Graph(filesDir.absolutePath, bleConfig)
+        webView = findViewById(R.id.map_web_view)
+        switchCompat = findViewById(R.id.sensing_on_off)
+        // create the graph
+        val timeAnHourBefore = Calendar.getInstance()
+        timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1*24*7*4) // TODO: nocheckin
+        updateMap(startTS = timeAnHourBefore.timeInMillis)
+
+        webView.settings.javaScriptEnabled = true;
+        webView.settings.allowFileAccess = true;
+        webView.settings.builtInZoomControls = true;
+        //webView.webViewClient = WebViewClient()
+        webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+    }
     private fun inSensingState(): Boolean {
         return findViewById<SwitchCompat>(R.id.sensing_on_off).isChecked
     }
@@ -184,19 +188,17 @@ class NoiseActivity: AppCompatActivity() {
                 map_noise_level[currentTimestamp] = amplitudeDb
                 Log.i("NoiseDetection", "Level db is $amplitudeDb at time $currentTimestamp")
                 sound.text = String.format("%.1f dB", amplitudeDb)
-                /*
                 when {
                     amplitudeDb > 80 -> { // High noise level
-                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.high_noise))
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseActivity, R.color.high_noise))
                     }
                     amplitudeDb > 60 -> { // Medium noise level
-                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.medium_noise))
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseActivity, R.color.medium_noise))
                     }
                     else -> { // Low noise level
-                        sound.setTextColor(ContextCompat.getColor(this@NoiseDetection, R.color.low_noise))
+                        sound.setTextColor(ContextCompat.getColor(this@NoiseActivity, R.color.low_noise))
                     }
                 }
-                 */
             }
         }
     }
@@ -206,7 +208,7 @@ class NoiseActivity: AppCompatActivity() {
             continue // HACK: if the user doesn't enable the bluetooth, the app will be stuck here forever
         }
         val recorderTask = RecorderTask()
-        noise_microphone = NoiseMicrophone(cacheDir, findViewById(R.id.db_level), recorderTask)
+        noise_microphone = NoiseMicrophone(this,cacheDir, findViewById(R.id.db_level), recorderTask)
         ble_scanner = BLEScanner(this)
     }
 
@@ -276,6 +278,11 @@ class NoiseActivity: AppCompatActivity() {
     private fun stopSensing() {
         noise_microphone.stopListening()
         ble_scanner.stopScanning()
+        // reset the text value of the noise indicator
+        val sound : TextView = findViewById(R.id.db_level)
+        sound.text = getString(R.string.db_level_no_sensing)
+        sound.setTextColor(findViewById<TextView>(R.id.current_room).currentTextColor)
+
     }
 
     private fun stopUpdate() {
