@@ -2,15 +2,9 @@ package it.dii.unipi.masss.noisemapper
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import com.google.gson.Gson
 import java.io.BufferedReader
-import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStreamReader
-import java.net.URL
-import java.io.*
-import java.net.HttpURLConnection
 
 interface FileDownloadCallback {
 
@@ -86,8 +80,8 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
                 Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
-        val noise_map_io : NoiseMapIO = NoiseMapIO(context.getString(R.string.serverURL));
-        noise_map_io.retrieveFileFromServer(context, callback , fileToSave="config.json",lock)
+        val noise_map_io : NoiseMapIO = NoiseMapIO(context);
+        noise_map_io.retrieveFileFromServer(callback , fileToSave="config.json",lock)
     }
 
 

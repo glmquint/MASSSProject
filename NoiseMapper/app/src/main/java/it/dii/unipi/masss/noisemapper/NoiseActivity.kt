@@ -67,7 +67,7 @@ class NoiseActivity: AppCompatActivity() {
             startActivity(intent)
             return
         }
-        noise_map_io = NoiseMapIO(this.resources.getString(R.string.serverURL))
+        noise_map_io = NoiseMapIO(this)
         graph = Graph(filesDir.absolutePath, bleConfig)
         webView = findViewById(R.id.map_web_view)
         switchCompat = findViewById(R.id.sensing_on_off)

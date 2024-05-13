@@ -11,10 +11,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 //class that performs the config requests to the server and retrieve the array of tuple (room, noise) sending the time interval
-class NoiseMapIO (private val url: String) {
+class NoiseMapIO(private val context: Context) {
+    private val CONNECTION_TIMEOUT = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
+    private val url = context.getString(R.string.serverURL)
 
     fun retrieveFileFromServer(
-            context: Context,
             callback: FileDownloadCallback,
             fileToSave: String,
             lock: Any
@@ -24,8 +25,8 @@ class NoiseMapIO (private val url: String) {
                 synchronized(lock) {
                     try {
                         val connection = URL(url+"/resources/"+context.getString(R.string.config_file_name)).openConnection() as HttpURLConnection
-                        connection.connectTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
-                        connection.readTimeout = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
+                        connection.connectTimeout = CONNECTION_TIMEOUT
+                        connection.readTimeout = CONNECTION_TIMEOUT
                         connection.connect()
                         val inputStream = BufferedInputStream(connection.inputStream)
                         val file = File(context.filesDir, fileToSave)
@@ -60,9 +61,9 @@ class NoiseMapIO (private val url: String) {
                         val url = URL("$url/measurements?start_from=$start_from&end_to=$end_to")
                         val connection = url.openConnection() as HttpURLConnection
                         connection.requestMethod = "GET"
-
+                        connection.connectTimeout = CONNECTION_TIMEOUT
+                        connection.readTimeout = CONNECTION_TIMEOUT
                         val responseCode = connection.responseCode
-
 
                         if (responseCode == HttpURLConnection.HTTP_OK) {
                             val gson = Gson()
@@ -90,7 +91,6 @@ class NoiseMapIO (private val url: String) {
                             Log.e(
                                 "PollingRequest",
                                 "GET request failed with response code: $responseCode"
-
                             )
 
                         }
