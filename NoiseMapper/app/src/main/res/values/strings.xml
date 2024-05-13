@@ -5,7 +5,7 @@
     <string name="noise_map">Noise map</string>
     <string name="text_main">Welcome to NoiseMapper!</string>
     <string name="microphone_bluetooth_request_not_granted">You must grant the permission to use the microphone and bluetooth in order to use this app</string>
-    <string name="serverURL">http://192.168.1.122:5002</string>
+    <string name="serverURL">http://172.20.10.2:5002</string>
     <string name="upper_text_noise_activity">Current noise level is</string>
     <string name="upper_text_dynamic_page">You are now in room:</string>
     <string name="room_name">No room found</string>
@@ -20,4 +20,5 @@
     <string name="config_file_name">config.json</string>
     <string name="pick_date">Pick date</string>
     <string name="refresh_map">Refresh map</string>
+    <string name="db_level_no_sensing">0.0 dB</string>
 </resources>

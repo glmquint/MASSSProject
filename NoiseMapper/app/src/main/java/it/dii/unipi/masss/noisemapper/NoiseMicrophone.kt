@@ -1,5 +1,6 @@
 package it.dii.unipi.masss.noisemapper
 
+import android.content.Context
 import android.media.MediaRecorder
 import android.widget.TextView
 import it.dii.unipi.masss.noisemapper.NoiseActivity.RecorderTask
@@ -9,6 +10,7 @@ import java.io.IOException
 import java.util.Timer
 
 class NoiseMicrophone(
+    context: Context,
     cacheDir: File,
     private val sound: TextView,
     private val recorderTask: RecorderTask,
@@ -16,9 +18,9 @@ class NoiseMicrophone(
     private val AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_PERFORMANCE
     private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
     private val AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
-    private val AUDIO_ENCODING_BIT_RATE = 16*44100
-    private val AUDIO_SAMPLING_RATE = 44100
-    private val REFRESH_RATE = 500
+    private val AUDIO_ENCODING_BIT_RATE = context.resources.getInteger(R.integer.AUDIO_ENCODING_BIT_RATE)
+    private val AUDIO_SAMPLING_RATE = context.resources.getInteger(R.integer.AUDIO_SAMPLING_RATE)
+    private val REFRESH_RATE = context.resources.getInteger(R.integer.AUDIO_REFRESH_RATE)
     private val mRecorder: MediaRecorder
     private var timer: Timer? = null
     init {
