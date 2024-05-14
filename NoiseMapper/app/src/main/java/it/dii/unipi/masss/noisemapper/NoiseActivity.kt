@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
@@ -27,8 +28,8 @@ import kotlin.concurrent.fixedRateTimer
 import kotlin.math.abs
 import kotlin.math.log10
 
-class NoiseActivity: AppCompatActivity() {
-
+class NoiseActivity() : AppCompatActivity() {
+    //private lateinit var  url : String
     private lateinit var webviewUpdateTimer: Timer
     val map_noise_level: MutableMap<Long, Double> = mutableMapOf()
     private lateinit var noise_microphone: NoiseMicrophone
@@ -54,11 +55,15 @@ class NoiseActivity: AppCompatActivity() {
     var startDate:Long = 0
     var endDate:Long = 0
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_activity)
+        // get the URL from the intent
+        val url = intent.getStringExtra("serverURL").toString()
+        Log.i("NoiseActivity", "URL is $url")
         Log.i("NoiseActivity", "Noise activity started")
-        bleConfig = BLEConfig(this)
+        bleConfig = BLEConfig(this, serverUrl = url)
         if (!bleConfig.gotConfig()){
             Toast.makeText(
                 this,
@@ -69,7 +74,7 @@ class NoiseActivity: AppCompatActivity() {
             startActivity(intent)
             return
         }
-        noise_map_io = NoiseMapIO(this)
+        noise_map_io = NoiseMapIO(this, serverUrl = url)
         createGraphUI()
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
