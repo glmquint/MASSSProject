@@ -40,13 +40,12 @@ class NoiseMapIO(private val context: Context) {
                         callback.onFileDownloaded(file.absolutePath)
                         inputStream.close()
                         outputStream.close()
-                        lock.notify()
 
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        lock.notify()
                         callback.onFileDownloadError("Error: ${e.message}")
                     }
+                    lock.notify()
                 }
             }.start()
         }
@@ -95,11 +94,10 @@ class NoiseMapIO(private val context: Context) {
 
                         }
                         connection.disconnect()
-                        lock.notify() // i release the lock after modifying roomNoise to avoid race condition
                     } catch (e: Exception) {
-                        lock.notify() // i release the lock after modifying roomNoise to avoid race condition
                         Log.e("PollingRequest", "GET request failed with exception: $e")
                     }
+                    lock.notify() // i release the lock after modifying roomNoise to avoid race condition
                 }
             }.start()
 
