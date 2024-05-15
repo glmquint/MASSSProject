@@ -11,9 +11,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 //class that performs the config requests to the server and retrieve the array of tuple (room, noise) sending the time interval
-class NoiseMapIO(private val context: Context, serverUrl : String = "") {
+class NoiseMapIO(private val context: Context, private val url : String = "") {
     private val CONNECTION_TIMEOUT = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
-    private val url = serverUrl
 
     fun retrieveFileFromServer(
             callback: FileDownloadCallback,

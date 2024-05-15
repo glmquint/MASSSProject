@@ -103,13 +103,13 @@ class BLEScanner(val activity: NoiseActivity) {
     private fun send_json_array(json: String) {
 
         // push the updated iBeacon devices to endpoint /beacons
-        val url = activity.getString(R.string.serverURL) + "/measurements"
+        val measurement_url = activity.url + "/measurements"
 
-        println("Pushing $json to $url")
+        println("Pushing $json to $measurement_url")
         val client = OkHttpClient()
         val body = json.toRequestBody("application/json".toMediaTypeOrNull())
         val request = Request.Builder()
-            .url(url)
+            .url(measurement_url)
             .post(body)
             .build()
         client.newCall(request).enqueue(object : Callback {

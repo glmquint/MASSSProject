@@ -10,7 +10,7 @@ import java.util.Timer
 import kotlin.concurrent.fixedRateTimer
 
 class PollingRequest(private val context: Context, private val bleConfig: BLEConfig) {
-    private val url = context.getString(R.string.serverURL) + "/measurements"
+    private val url = "" + "/measurements"
     private val interval = 10000L
     private var timer: Timer? = null
     private val grapher: Graph

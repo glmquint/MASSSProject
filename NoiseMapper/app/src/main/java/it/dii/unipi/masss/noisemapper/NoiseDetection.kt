@@ -60,7 +60,7 @@ class NoiseDetection : AppCompatActivity(), SensorEventListener {
             // Close the current activity
         }
         // call the class to read the BLEConfig file
-        bleConfig = BLEConfig(this.applicationContext, false, getString(R.string.serverURL))
+        bleConfig = BLEConfig(this.applicationContext, false, "")
         if (bleConfig.gotConfig()){
             //println(bleConfig.beaconRoomMap?.mapping?.get("bpGG"))
             // Initialize Kontakt SDK

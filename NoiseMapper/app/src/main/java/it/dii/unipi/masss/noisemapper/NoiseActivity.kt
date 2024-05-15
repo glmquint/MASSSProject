@@ -29,6 +29,8 @@ import kotlin.math.abs
 import kotlin.math.log10
 
 class NoiseActivity() : AppCompatActivity() {
+    lateinit var url: String
+
     //private lateinit var  url : String
     private lateinit var webviewUpdateTimer: Timer
     val map_noise_level: MutableMap<Long, Double> = mutableMapOf()
@@ -60,7 +62,7 @@ class NoiseActivity() : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.noise_activity)
         // get the URL from the intent
-        val url = intent.getStringExtra("serverURL").toString()
+        url = intent.getStringExtra("serverURL").toString()
         Log.i("NoiseActivity", "URL is $url")
         Log.i("NoiseActivity", "Noise activity started")
         bleConfig = BLEConfig(this, serverUrl = url)
@@ -74,7 +76,7 @@ class NoiseActivity() : AppCompatActivity() {
             startActivity(intent)
             return
         }
-        noise_map_io = NoiseMapIO(this, serverUrl = url)
+        noise_map_io = NoiseMapIO(this, url)
         createGraphUI()
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
