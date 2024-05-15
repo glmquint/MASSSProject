@@ -140,9 +140,14 @@ class NoiseActivity: AppCompatActivity() {
     fun enterSensingState() {
         pickDateButton.text = getString(R.string.refresh_map)
         Log.i("NoiseMapper", "Entering sensing state")
-        while (!permissionCheck()) {
+        if (!permissionCheck()) {
             requestPermissions()
+        }else {
+            senseWithPermissions()
         }
+    }
+
+    private fun senseWithPermissions() {
         enableBT()
         initializeSensors()
         startSensing()
@@ -249,10 +254,6 @@ class NoiseActivity: AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        if (notGrantedPermissions.isEmpty()) {
-            Log.w("NoiseMapper", "Permissions already granted")
-            return
-        }
         // request the permissions
         ActivityCompat.requestPermissions(
             this,
@@ -260,6 +261,22 @@ class NoiseActivity: AppCompatActivity() {
             RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE
         )
         return
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE) {
+            if (grantResults.filter { it != 0 }.isEmpty()) {
+                enterSensingState()
+            } else {
+                Toast.makeText(this, "Please allow all permissions", Toast.LENGTH_SHORT).show()
+                switchCompat.isChecked = false
+            }
+        }
     }
 
     private fun scheduleUpdate() {
@@ -301,6 +318,8 @@ class NoiseActivity: AppCompatActivity() {
     }
 
     private fun exitSensingState() {
+        if (!this::noise_microphone.isInitialized)
+            return
         pickDateButton.text = getString(R.string.pick_date)
         Log.i("NoiseMapper", "Exiting sensing state")
         stopSensing()
