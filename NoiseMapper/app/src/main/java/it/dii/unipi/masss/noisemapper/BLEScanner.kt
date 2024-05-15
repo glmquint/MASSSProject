@@ -121,7 +121,10 @@ class BLEScanner(val activity: NoiseActivity) {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     Log.d("NoiseMapper", "Successful push")
+                    // clear the json array
                     json_array_request.clear()
+                    // reset the window size (may not be necessary)
+                    FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
                 } else {
                     Log.d("NoiseMapper", "Failed push")
                     if(FLUSH_WINDOW < MAX_FLUSH_WINDOW)
