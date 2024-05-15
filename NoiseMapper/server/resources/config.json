@@ -3,14 +3,14 @@
     "bpGG": "F1_F2",
     "3hI4": "F3_F4",
     "Tvvr": "intersection",
-    "hbcm": "F5_F6",
-    "6Ls6": "F7_F8_F9",
-    "LmGw": "F4_F6",
+    "LmGw": "F5_F6",
+    "6zLh": "F7_F8_F9",
+    "wLL9": "F4_F6", 
     "hWkm": "dispenser"
   },
   "unused" : {
-    "6zLh": "room_6zLh",
-    "wLL9": "room_wLL9",
+    "6Ls6": "room_6Ls6",
+    "hbcm": "room_hbcm",
     "ekuu": "room_ekuu"
   },
   "layout": {
@@ -21,6 +21,6 @@
     "y2" :  [20.0, 36.0, 48.0, 64.0, 80.0, 48.0, 48.0]
   },
   "unused_layout" : {
-    "room_name" : ["room_6zLh", "room_wLL9", "room_ekuu"]
+    "room_name" : ["room_6Ls6", "room_hbcm", "room_ekuu"]
   }
 }
