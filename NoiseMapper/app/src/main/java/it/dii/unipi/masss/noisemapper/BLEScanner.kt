@@ -84,7 +84,7 @@ class BLEScanner(val activity: NoiseActivity) {
         val json_array = json.toJson(json_array_request)
         //send the array of json, then clear it
         send_json_array(json_array)
-        json_array_request.clear()
+
     }
 
     private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
@@ -118,7 +118,12 @@ class BLEScanner(val activity: NoiseActivity) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d("NoiseMapper", "Failed to push update")
+                if (response.isSuccessful) {
+                    Log.d("NoiseMapper", "Successful push")
+                    json_array_request.clear()
+                } else {
+                    Log.d("NoiseMapper", "Failed push")
+                }
             }
         })
     }
