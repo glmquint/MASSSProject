@@ -29,7 +29,8 @@ class BLEScanner(val activity: NoiseActivity) {
     private var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
 
     // obtain flush window from numbers.xml
-    private val FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
+    private var FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
+    private var MAX_FLUSH_WINDOW = activity.resources.getInteger(R.integer.MAX_SAMPLES_WINDOW)
 
     init {
         KontaktSDK.initialize(activity);
@@ -123,6 +124,8 @@ class BLEScanner(val activity: NoiseActivity) {
                     json_array_request.clear()
                 } else {
                     Log.d("NoiseMapper", "Failed push")
+                    if(FLUSH_WINDOW < MAX_FLUSH_WINDOW)
+                        FLUSH_WINDOW += FLUSH_WINDOW
                 }
             }
         })
