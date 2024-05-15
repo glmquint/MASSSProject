@@ -1,21 +1,21 @@
 {
   "mapping": {
-    "bpGG": "room_BpGG",
-    "3hI4": "room_3hI4",
-    "Tvvr": "room_Tvvr",
-    "hbcm": "room_hbcm",
-    "6Ls6": "room_6Ls6",
-    "LmGw": "room_LmGw",
-    "hWkm": "room_hWkm",
+    "bpGG": "F1_F2",
+    "3hI4": "F3_F4",
+    "Tvvr": "intersection",
+    "hbcm": "F5_F6",
+    "6Ls6": "F7_F8_F9",
+    "LmGw": "F4_F6",
+    "hWkm": "dispenser",
     "6zLh": "room_6zLh",
     "wLL9": "room_wLL9",
     "ekuu": "room_ekuu"
   },
   "layout": {
-    "room_name" : ["room_BpGG", "room_3hI4", "room_Tvvr", "room_hbcm", "room_6Ls6", "room_LmGw", "room_hWkm", "room_6zLh", "room_wLL9", "room_ekuu"],
-    "x1" :        [        2.0,         5.0,         8.0,         12.0,         8.0,         9.0,         12.0,         2.0,         2.0,        3.0],
-    "x2" :        [        5.0,         8.0,         12.0,         14.0,         9.0,         12.0,        15.0,        5.0,        5.0,        6.0],
-    "y1" :        [        7.0,         9.0,         11.0,         13.0,       7.0,        7.0,        7.0,        10.0,        12.0,        15.0],
-    "y2" :        [       10.0,        12.0,        14.0,        16.0,        10.0,        10.0,        10.0,        12.0,        15.0,        19.0]
+    "room_name" : ["F1_F2", "F3_F4", "intersection", "F5_F6", "F7_F8_F9", "F4_F6", "dispenser", "room_6zLh", "room_wLL9", "room_ekuu"],
+    "x1" :        [7.0,       7.0,        7.0,         7.0,       7.0,       10.0,     14.0,        0.0,        0.0,        0.0],
+    "x2" :        [10.0,      10.0,       10.0,        10.0,      10.0,       14.0,     17.0,        0.0,        0.0,        0.0],
+    "y1" :        [1.0,       5.0,        9.0,         12.0,      16.0,       9.0,      9.0,         0.0,        0.0,        0.0],
+    "y2" :        [5.0,       9.0,        12.0,        16.0,      20.0,      12.0,     12.0,        0.0,        0.0,        0.0]
   }
 }
