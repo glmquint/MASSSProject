@@ -17,7 +17,7 @@ class ConfigData(val mapping : Map<String, String>, val layout : Map<String, Lis
 class BLEConfig(private val context: Context, offline: Boolean = false, serverUrl : String) {
     private val successfulConfig: Boolean
     lateinit var beaconRoomMap : ConfigData
-    val url = serverUrl + "/resources/"+ context.getString(R.string.config_file_name)
+    val url = serverUrl
     var lock = Object()
 
     init {
@@ -81,7 +81,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
                 Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
-        val noise_map_io : NoiseMapIO = NoiseMapIO(context);
+        val noise_map_io : NoiseMapIO = NoiseMapIO(context, url);
         noise_map_io.retrieveFileFromServer(callback , fileToSave="config.json",lock)
     }
 
