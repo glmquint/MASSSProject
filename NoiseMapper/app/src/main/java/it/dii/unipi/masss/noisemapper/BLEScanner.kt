@@ -144,7 +144,8 @@ class BLEScanner(val activity: NoiseActivity) {
                 .inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
             view.findViewById<TextView>(R.id.beacon_distance).text =
-                beacon.distance.toString() + "m"
+                //beacon.distance.toString() + "m"
+                String.format("%.2f", beacon.distance) + " m"
             return view
         }
 
