@@ -14,13 +14,14 @@ interface FileDownloadCallback {
 
 class ConfigData(val mapping : Map<String, String>, val layout : Map<String, List<Any>>)
 
-class BLEConfig(private val context: Context, offline: Boolean = false) {
+class BLEConfig(private val context: Context, offline: Boolean = false, serverUrl : String) {
     private val successfulConfig: Boolean
     lateinit var beaconRoomMap : ConfigData
-    val url = context.getString(R.string.serverURL) + "/resources/"+ context.getString(R.string.config_file_name)
+    val url = serverUrl
     var lock = Object()
 
     init {
+        Log.i("NoiseMapper", "Url for BLE config is $url")
         if (!offline) {
                 GetConfigFileFromServer(url)
                 synchronized(lock) {
@@ -80,7 +81,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false) {
                 Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
-        val noise_map_io : NoiseMapIO = NoiseMapIO(context);
+        val noise_map_io : NoiseMapIO = NoiseMapIO(context, url);
         noise_map_io.retrieveFileFromServer(callback , fileToSave="config.json",lock)
     }
 
