@@ -164,9 +164,6 @@ class NoiseActivity: AppCompatActivity() {
     private fun startSensing() {
         noise_microphone.startListening()
         ble_scanner.startScanning()
-        synchronized(microphone_on_lock) {
-            mic_is_on = true
-        }
     }
 
     inner class RecorderTask() : TimerTask() {
@@ -183,9 +180,6 @@ class NoiseActivity: AppCompatActivity() {
 
         override fun run() {
             runOnUiThread {
-                synchronized(microphone_on_lock) {
-                    if (mic_is_on) {
-
                         val amplitude = mRecorder.maxAmplitude
                         Log.i("NoiseDetection", "Recorder max amplitude is $amplitude")
                         var amplitudeDb =
@@ -234,8 +228,6 @@ class NoiseActivity: AppCompatActivity() {
                     }
                 }
             }
-        }
-    }
 
     private fun initializeSensors() {
         while (!(bluetoothAdapter?.isEnabled)!!) {
@@ -311,9 +303,6 @@ class NoiseActivity: AppCompatActivity() {
     private fun exitSensingState() {
         pickDateButton.text = getString(R.string.pick_date)
         Log.i("NoiseMapper", "Exiting sensing state")
-        synchronized(microphone_on_lock) {
-            mic_is_on = false
-        }
         stopSensing()
         stopUpdate()
     }

@@ -51,10 +51,10 @@ class NoiseMicrophone(
     }
 
     fun stopListening() {
-        mRecorder.stop()
-        mRecorder.release()
         timer?.cancel()
         timer = null
+        mRecorder.stop()
+        mRecorder.release()
     }
 
 }
