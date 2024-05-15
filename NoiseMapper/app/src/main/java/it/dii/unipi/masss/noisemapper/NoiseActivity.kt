@@ -311,14 +311,14 @@ class NoiseActivity: AppCompatActivity() {
     private fun exitSensingState() {
         pickDateButton.text = getString(R.string.pick_date)
         Log.i("NoiseMapper", "Exiting sensing state")
+        synchronized(microphone_on_lock) {
+            mic_is_on = false
+        }
         stopSensing()
         stopUpdate()
     }
 
     private fun stopSensing() {
-        synchronized(microphone_on_lock) {
-            mic_is_on = false
-        }
         noise_microphone.stopListening()
         ble_scanner.stopScanning()
         // reset the text value of the noise indicator
