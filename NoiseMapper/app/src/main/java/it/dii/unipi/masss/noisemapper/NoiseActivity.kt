@@ -53,6 +53,7 @@ class NoiseActivity() : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
     private var bluetoothAdapter: BluetoothAdapter? = null
+    private lateinit var proximitySensorHandler: ProximitySensorHandler
     var startDate: Long = 0
     var endDate: Long = 0
 
@@ -80,6 +81,7 @@ class NoiseActivity() : AppCompatActivity() {
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
+        proximitySensorHandler = ProximitySensorHandler(this)
         startDate =
             System.currentTimeMillis() - this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
@@ -154,6 +156,7 @@ class NoiseActivity() : AppCompatActivity() {
 
     private fun senseWithPermissions() {
         enableBT()
+        proximitySensorHandler.startListening()
         initializeSensors()
         startSensing()
         scheduleUpdate()
@@ -194,12 +197,10 @@ class NoiseActivity() : AppCompatActivity() {
                         Log.i("NoiseDetection", "Recorder max amplitude is $amplitude")
                         var amplitudeDb =
                             20 * log10(abs(if (amplitude == 0) 1 else amplitude).toDouble())
-                        /*
-                if (isNearObject) {
-                    amplitudeDb += DB_ADJUSTMENT_PROXIMITY_SENSOR // TODO: calibrate this value
-                    Log.i("NoiseDetection", "Proximity sensor detected an object")
-                }
-                */
+                        if (proximitySensorHandler.isNearObject) {
+                            amplitudeDb += proximitySensorHandler.DB_ADJUSTMENT
+                            Log.i("NoiseDetection", "Proximity sensor detected an object")
+                        }
                         val currentTimestamp = System.currentTimeMillis()
                         map_noise_level[currentTimestamp] = amplitudeDb
                         Log.i(
@@ -334,6 +335,7 @@ class NoiseActivity() : AppCompatActivity() {
     private fun stopSensing() {
         noise_microphone.stopListening()
         ble_scanner.stopScanning()
+        proximitySensorHandler.stopListening()
         // reset the text value of the noise indicator
         val sound: TextView = findViewById(R.id.db_level)
         sound.text = getString(R.string.db_level_no_sensing)
