@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
@@ -27,8 +26,11 @@ import java.util.TimerTask
 import kotlin.concurrent.fixedRateTimer
 import kotlin.math.abs
 import kotlin.math.log10
+import kotlin.properties.Delegates
 
 class NoiseActivity() : AppCompatActivity() {
+    var FAST_UPDATE_MAP_PERIOD : Int = 0
+    var SLOW_UPDATE_MAP_PERIOD : Int = 0
     lateinit var url: String
 
     private lateinit var webviewUpdateTimer: Timer
@@ -53,12 +55,15 @@ class NoiseActivity() : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
     private var bluetoothAdapter: BluetoothAdapter? = null
+    private lateinit var powerGovernor : PowerSaveModeDetector
     var startDate: Long = 0
     var endDate: Long = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FAST_UPDATE_MAP_PERIOD = resources.getInteger(R.integer.FAST_UPDATE_MAP_PERIOD)
+        SLOW_UPDATE_MAP_PERIOD = resources.getInteger(R.integer.SLOW_UPDATE_MAP_PERIOD)
         setContentView(R.layout.noise_activity)
         // get the URL from the intent
         url = intent.getStringExtra("serverURL").toString()
@@ -80,6 +85,8 @@ class NoiseActivity() : AppCompatActivity() {
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
+        powerGovernor = PowerSaveModeDetector(this)
+        powerGovernor.register()
         startDate =
             System.currentTimeMillis() - this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
@@ -143,32 +150,37 @@ class NoiseActivity() : AppCompatActivity() {
     }
 
     fun enterSensingState() {
-        pickDateButton.text = getString(R.string.refresh_map)
         Log.i("NoiseMapper", "Entering sensing state")
         if (!permissionCheck()) {
-            requestPermissions()
+            requestPermissions() // callback on all permissions granted will eventually call senseWithPermissions
         }else {
             senseWithPermissions()
         }
     }
 
     private fun senseWithPermissions() {
-        enableBT()
-        initializeSensors()
-        startSensing()
-        scheduleUpdate()
+        if (enableBT()) {
+            initializeSensors()
+            startSensing()
+            scheduleUpdate()
+            pickDateButton.text = getString(R.string.refresh_map)
+        }
     }
 
     @SuppressLint("MissingPermission")
-    private fun enableBT() {
+    private fun enableBT() : Boolean{
         // check that bluetooth is enabled, if not, ask the user to enable it
         if (!(bluetoothAdapter?.isEnabled)!!) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             // start the intent to enable bluetooth with a callback for when the user enables it
 
-            startActivity(enableBtIntent) // HACK: look for a way to get the result of the intent
+            // startActivity(enableBtIntent) // HACK: look for a way to get the result of the intent
+            Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_SHORT).show()
+            switchCompat.isChecked = false
+            return false
             // TODO: probably use startActivityForResult instead of startActivity
         }
+        return true
     }
 
     private fun startSensing() {
@@ -240,13 +252,15 @@ class NoiseActivity() : AppCompatActivity() {
             }
 
     private fun initializeSensors() {
-        while (!(bluetoothAdapter?.isEnabled)!!) {
-            continue // HACK: if the user doesn't enable the bluetooth, the app will be stuck here forever
+        if (!(bluetoothAdapter?.isEnabled)!!) {
+            Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_SHORT).show()
+            switchCompat.isChecked = false
+            return
         }
         val recorderTask = RecorderTask()
         noise_microphone =
-            NoiseMicrophone(this, cacheDir, findViewById(R.id.db_level), recorderTask)
-        ble_scanner = BLEScanner(this)
+            NoiseMicrophone(this, cacheDir, findViewById(R.id.db_level), recorderTask, powerGovernor.isPowerSaveMode)
+        ble_scanner = BLEScanner(this, powerGovernor.isPowerSaveMode)
     }
 
 
@@ -286,40 +300,43 @@ class NoiseActivity() : AppCompatActivity() {
 
     private fun scheduleUpdate() {
         // start a timer
-        updateMapTimer = fixedRateTimer(initialDelay = 2000, period = 10 * 1000) {
+        updateMapTimer = fixedRateTimer(initialDelay = 2000, period = (if (powerGovernor.isPowerSaveMode) SLOW_UPDATE_MAP_PERIOD else FAST_UPDATE_MAP_PERIOD).toLong()) {
             updateMap()
         }
     }
 
     private fun updateMap(startTS: Long? = null, endTS: Long? = null) {
-        val currentTime = Calendar.getInstance()
+        Thread {
+            val currentTime = Calendar.getInstance()
 
-        // Get time an hour before
-        val timeAnHourBefore = Calendar.getInstance()
-        timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1)
+            // Get time an hour before
+            val timeAnHourBefore = Calendar.getInstance()
+            timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1)
 
-        // Convert to Unix timestamp
-        val currentUnixTimestamp = endTS ?: currentTime.timeInMillis
-        val previousHourUnixTimestamp = startTS ?: timeAnHourBefore.timeInMillis
+            // Convert to Unix timestamp
+            val currentUnixTimestamp = endTS ?: currentTime.timeInMillis
+            val previousHourUnixTimestamp = startTS ?: timeAnHourBefore.timeInMillis
 
-        // Log the results
-        Log.i("PollingRequest", "Current time: ${currentTime.time}")
-        Log.i("PollingRequest", "Unix timestamp of current time: $currentUnixTimestamp")
+            // Log the results
+            Log.i("PollingRequest", "Current time: ${currentTime.time}")
+            Log.i("PollingRequest", "Unix timestamp of current time: $currentUnixTimestamp")
 
-        Log.i("PollingRequest", "Time an hour before: ${timeAnHourBefore.time}")
-        Log.i(
-            "PollingRequest",
-            "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
-        )
-        graph.makeplot(
-            noise_map_io.performGetRequest(
-                previousHourUnixTimestamp / 1000,
-                currentUnixTimestamp / 1000
+            Log.i("PollingRequest", "Time an hour before: ${timeAnHourBefore.time}")
+            Log.i(
+                "PollingRequest",
+                "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
             )
-        )
-        runOnUiThread {
-            webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
-        }
+            graph.makeplot(
+                noise_map_io.performGetRequest(
+                    previousHourUnixTimestamp / 1000,
+                    currentUnixTimestamp / 1000,
+                    if (this::ble_scanner.isInitialized) ble_scanner.json_array_request else ArrayList()
+                )
+            )
+            runOnUiThread {
+                webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+            }
+        }.start()
     }
 
     private fun exitSensingState() {
@@ -330,6 +347,13 @@ class NoiseActivity() : AppCompatActivity() {
         stopSensing()
         stopUpdate()
     }
+
+    fun onBatteryStatusUpdate(newIsPowerSaveMode : Boolean){
+        // TODO: make all new periods a function of newBatteryMode
+        exitSensingState()
+        enterSensingState()
+    }
+
 
     private fun stopSensing() {
         noise_microphone.stopListening()
@@ -350,6 +374,7 @@ class NoiseActivity() : AppCompatActivity() {
         if (inSensingState()) {
             switchCompat.isChecked = false
         }
+        powerGovernor.unregister()
     }
 }
 

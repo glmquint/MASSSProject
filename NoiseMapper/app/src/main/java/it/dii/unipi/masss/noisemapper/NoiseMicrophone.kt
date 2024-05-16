@@ -14,15 +14,18 @@ class NoiseMicrophone(
     cacheDir: File,
     private val sound: TextView,
     private val recorderTask: RecorderTask,
+    private val isPowerSaveMode: Boolean,
 ){
     private val AUDIO_SOURCE = MediaRecorder.AudioSource.VOICE_PERFORMANCE
     private val OUTPUT_FORMAT_AUDIO = MediaRecorder.OutputFormat.MPEG_4
     private val AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
     private val AUDIO_ENCODING_BIT_RATE = context.resources.getInteger(R.integer.AUDIO_ENCODING_BIT_RATE)
     private val AUDIO_SAMPLING_RATE = context.resources.getInteger(R.integer.AUDIO_SAMPLING_RATE)
-    private val REFRESH_RATE = context.resources.getInteger(R.integer.AUDIO_REFRESH_RATE)
+    private val FAST_REFRESH_RATE = context.resources.getInteger(R.integer.FAST_AUDIO_REFRESH_RATE)
+    private val SLOW_REFRESH_RATE = context.resources.getInteger(R.integer.SLOW_AUDIO_REFRESH_RATE)
     private val mRecorder: MediaRecorder
     private var timer: Timer? = null
+    private var hasRecorderStarted : Boolean = false
     init {
         mRecorder = MediaRecorder()
         mRecorder.setAudioSource(AUDIO_SOURCE)
@@ -37,6 +40,7 @@ class NoiseMicrophone(
         try {
             mRecorder.prepare()
             mRecorder.start()
+            hasRecorderStarted = true
         } catch (e: IllegalStateException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -46,15 +50,22 @@ class NoiseMicrophone(
             // If timer is not initialized, create and start it
             timer = Timer()
             recorderTask.setup(mRecorder, sound)
-            timer?.schedule(recorderTask, 0, REFRESH_RATE.toLong())
+            timer?.schedule(recorderTask, 0, (if (isPowerSaveMode) SLOW_REFRESH_RATE else FAST_REFRESH_RATE).toLong())
         }
     }
 
     fun stopListening() {
         timer?.cancel()
         timer = null
-        mRecorder.stop()
-        mRecorder.release()
+        try {
+            if (hasRecorderStarted) {
+                mRecorder.stop()
+                mRecorder.release()
+                hasRecorderStarted = false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }
