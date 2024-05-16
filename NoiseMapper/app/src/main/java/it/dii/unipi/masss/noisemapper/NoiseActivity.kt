@@ -159,23 +159,28 @@ class NoiseActivity() : AppCompatActivity() {
     }
 
     private fun senseWithPermissions() {
-        powerGovernor.register()
-        enableBT()
-        initializeSensors()
-        startSensing()
-        scheduleUpdate()
+        if (enableBT()) {
+            initializeSensors()
+            startSensing()
+            scheduleUpdate()
+            pickDateButton.text = getString(R.string.refresh_map)
+        }
     }
 
     @SuppressLint("MissingPermission")
-    private fun enableBT() {
+    private fun enableBT() : Boolean{
         // check that bluetooth is enabled, if not, ask the user to enable it
         if (!(bluetoothAdapter?.isEnabled)!!) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             // start the intent to enable bluetooth with a callback for when the user enables it
 
-            startActivity(enableBtIntent) // HACK: look for a way to get the result of the intent
+            // startActivity(enableBtIntent) // HACK: look for a way to get the result of the intent
+            Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_SHORT).show()
+            switchCompat.isChecked = false
+            return false
             // TODO: probably use startActivityForResult instead of startActivity
         }
+        return true
     }
 
     private fun startSensing() {
@@ -247,8 +252,10 @@ class NoiseActivity() : AppCompatActivity() {
             }
 
     private fun initializeSensors() {
-        while (!(bluetoothAdapter?.isEnabled)!!) {
-            continue // HACK: if the user doesn't enable the bluetooth, the app will be stuck here forever
+        if (!(bluetoothAdapter?.isEnabled)!!) {
+            Toast.makeText(this, "Please enable Bluetooth", Toast.LENGTH_SHORT).show()
+            switchCompat.isChecked = false
+            return
         }
         val recorderTask = RecorderTask()
         noise_microphone =
