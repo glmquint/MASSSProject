@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
@@ -27,8 +26,11 @@ import java.util.TimerTask
 import kotlin.concurrent.fixedRateTimer
 import kotlin.math.abs
 import kotlin.math.log10
+import kotlin.properties.Delegates
 
 class NoiseActivity() : AppCompatActivity() {
+    var FAST_UPDATE_MAP_PERIOD : Int = 0
+    var SLOW_UPDATE_MAP_PERIOD : Int = 0
     lateinit var url: String
 
     private lateinit var webviewUpdateTimer: Timer
@@ -60,6 +62,8 @@ class NoiseActivity() : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FAST_UPDATE_MAP_PERIOD = resources.getInteger(R.integer.FAST_UPDATE_MAP_PERIOD)
+        SLOW_UPDATE_MAP_PERIOD = resources.getInteger(R.integer.SLOW_UPDATE_MAP_PERIOD)
         setContentView(R.layout.noise_activity)
         // get the URL from the intent
         url = intent.getStringExtra("serverURL").toString()
@@ -82,6 +86,7 @@ class NoiseActivity() : AppCompatActivity() {
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
         powerGovernor = PowerSaveModeDetector(this)
+        powerGovernor.register()
         startDate =
             System.currentTimeMillis() - this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
@@ -145,10 +150,9 @@ class NoiseActivity() : AppCompatActivity() {
     }
 
     fun enterSensingState() {
-        pickDateButton.text = getString(R.string.refresh_map)
         Log.i("NoiseMapper", "Entering sensing state")
         if (!permissionCheck()) {
-            requestPermissions()
+            requestPermissions() // callback on all permissions granted will eventually call senseWithPermissions
         }else {
             senseWithPermissions()
         }
@@ -248,8 +252,8 @@ class NoiseActivity() : AppCompatActivity() {
         }
         val recorderTask = RecorderTask()
         noise_microphone =
-            NoiseMicrophone(this, cacheDir, findViewById(R.id.db_level), recorderTask)
-        ble_scanner = BLEScanner(this)
+            NoiseMicrophone(this, cacheDir, findViewById(R.id.db_level), recorderTask, powerGovernor.isPowerSaveMode)
+        ble_scanner = BLEScanner(this, powerGovernor.isPowerSaveMode)
     }
 
 
@@ -289,7 +293,7 @@ class NoiseActivity() : AppCompatActivity() {
 
     private fun scheduleUpdate() {
         // start a timer
-        updateMapTimer = fixedRateTimer(initialDelay = 2000, period = 10 * 1000) {
+        updateMapTimer = fixedRateTimer(initialDelay = 2000, period = (if (powerGovernor.isPowerSaveMode) SLOW_UPDATE_MAP_PERIOD else FAST_UPDATE_MAP_PERIOD).toLong()) {
             updateMap()
         }
     }
@@ -332,8 +336,14 @@ class NoiseActivity() : AppCompatActivity() {
         Log.i("NoiseMapper", "Exiting sensing state")
         stopSensing()
         stopUpdate()
-        powerGovernor.unregister()
     }
+
+    fun onBatteryStatusUpdate(newIsPowerSaveMode : Boolean){
+        // TODO: make all new periods a function of newBatteryMode
+        exitSensingState()
+        enterSensingState()
+    }
+
 
     private fun stopSensing() {
         noise_microphone.stopListening()
@@ -354,6 +364,7 @@ class NoiseActivity() : AppCompatActivity() {
         if (inSensingState()) {
             switchCompat.isChecked = false
         }
+        powerGovernor.unregister()
     }
 }
 

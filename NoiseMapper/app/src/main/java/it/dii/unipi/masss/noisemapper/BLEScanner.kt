@@ -23,19 +23,25 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-class BLEScanner(val activity: NoiseActivity) {
+class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boolean) {
     private val proximityManager : ProximityManager
     private var lastUpdate: Long = 0
-    private var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
+    public var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
 
     // obtain flush window from numbers.xml
-    private var FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
-    private var MAX_FLUSH_WINDOW = activity.resources.getInteger(R.integer.MAX_SAMPLES_WINDOW)
+    private var FAST_FLUSH_WINDOW = activity.resources.getInteger(R.integer.FAST_FLUSH_SAMPLES_WINDOW)
+    private var SLOW_FLUSH_WINDOW = activity.resources.getInteger(R.integer.SLOW_FLUSH_SAMPLES_WINDOW)
+    private var retries = 1
 
     init {
         KontaktSDK.initialize(activity);
         proximityManager = ProximityManagerFactory.create(activity)
         setupProximityManager(activity)
+    }
+
+    fun getFlushWindow() : Int
+    {
+        return if (isPowerSaveMode) SLOW_FLUSH_WINDOW else FAST_FLUSH_WINDOW
     }
 
     fun setupProximityManager(activity: NoiseActivity) {
@@ -96,7 +102,7 @@ class BLEScanner(val activity: NoiseActivity) {
         json_array_request.add(m)
 
         //if the array gets gets to a certain size, all the json ar sent to server server
-        if (json_array_request.size == FLUSH_WINDOW) {
+        if (json_array_request.size == getFlushWindow() * retries) {
             flushRequest()
         }
     }
@@ -123,12 +129,11 @@ class BLEScanner(val activity: NoiseActivity) {
                     Log.d("NoiseMapper", "Successful push")
                     // clear the json array
                     json_array_request.clear()
+                    retries = 1
                     // reset the window size (may not be necessary)
-                    FLUSH_WINDOW = activity.resources.getInteger(R.integer.FLUSH_SAMPLES_WINDOW)
                 } else {
                     Log.d("NoiseMapper", "Failed push")
-                    if(FLUSH_WINDOW < MAX_FLUSH_WINDOW)
-                        FLUSH_WINDOW += FLUSH_WINDOW
+                    retries++
                 }
             }
         })
