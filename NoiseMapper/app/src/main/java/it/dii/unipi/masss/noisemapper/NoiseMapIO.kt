@@ -73,9 +73,12 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
 
                             //response.groupBy { it["room"] }.map { (room, value) -> room }  // TODO: prepare data to be plotted
                             try{
+                                val alpha = 0.9
                                 roomNoise = response.filter{ it["noise"] != null }.groupBy { it["room"] }
                                     .mapValues { (_, samples) ->
-                                    samples.map { it["noise"]!! as Double }.average()
+                                    samples.map { it["noise"]!! as Double }
+                                        // exponential moving average via exponential smoothing
+                                        .reduce({ acc, d -> alpha * d + (1 - alpha) * acc })
                                 } as Map<String, Double>
                             } catch (e: Exception){
                                 Log.e("PollingRequest", "noise map averaging failed with exception: $e")
