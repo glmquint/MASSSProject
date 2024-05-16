@@ -53,6 +53,7 @@ class NoiseActivity() : AppCompatActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) // Note that there is no need to ask about ACCESS_FINE_LOCATION anymore for BT scanning purposes for VERSION_CODES.S and higher if you add android:usesPermissionFlags="neverForLocation" under BLUETOOTH_SCAN in your manifest file.
     private var bluetoothAdapter: BluetoothAdapter? = null
+    private lateinit var powerGovernor : PowerSaveModeDetector
     var startDate: Long = 0
     var endDate: Long = 0
 
@@ -80,6 +81,7 @@ class NoiseActivity() : AppCompatActivity() {
         bluetoothAdapter = android.bluetooth.BluetoothManager::class.java.cast(
             getSystemService(android.content.Context.BLUETOOTH_SERVICE)
         )?.adapter
+        powerGovernor = PowerSaveModeDetector(this)
         startDate =
             System.currentTimeMillis() - this.resources.getInteger(R.integer.MILLISECONDS_IN_A_WEEK)
         endDate = System.currentTimeMillis()
@@ -153,6 +155,7 @@ class NoiseActivity() : AppCompatActivity() {
     }
 
     private fun senseWithPermissions() {
+        powerGovernor.register()
         enableBT()
         initializeSensors()
         startSensing()
@@ -329,6 +332,7 @@ class NoiseActivity() : AppCompatActivity() {
         Log.i("NoiseMapper", "Exiting sensing state")
         stopSensing()
         stopUpdate()
+        powerGovernor.unregister()
     }
 
     private fun stopSensing() {
