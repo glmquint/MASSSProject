@@ -42,10 +42,7 @@
             />
         <activity android:name=".NoiseActivity"
             android:label="NoiseActivity"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar">
-        </activity>
-        <activity android:name=".NoiseDetection"
-            android:label="NoiseDetection"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         </activity>
         <meta-data
