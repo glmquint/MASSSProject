@@ -50,7 +50,7 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
         }
 
         // get measurement list from server inside the time interval
-        fun performGetRequest(start_from: Long, end_to: Long): Map<String, Double> {
+        fun performGetRequest(start_from: Long, end_to: Long, auxilary: MutableList<Map<String, Any>>): Map<String, Double> {
             var roomNoise = mapOf<String, Double>();
             val lock = Object()
             Thread {
@@ -69,7 +69,8 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
                                 connection.inputStream.bufferedReader().readText(),
                                 Map::class.java
                             )["data"]
-                            response as List<Map<String, Any>>
+                            response as MutableList<Map<String, Any>>
+                            response.addAll(auxilary)
 
                             //response.groupBy { it["room"] }.map { (room, value) -> room }  // TODO: prepare data to be plotted
                             try{

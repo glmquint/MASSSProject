@@ -327,6 +327,13 @@ class NoiseActivity() : AppCompatActivity() {
         runOnUiThread {
             webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
         }
+            graph.makeplot(
+                noise_map_io.performGetRequest(
+                    previousHourUnixTimestamp / 1000,
+                    currentUnixTimestamp / 1000,
+                    if (this::ble_scanner.isInitialized) ble_scanner.json_array_request else ArrayList()
+                )
+            )
     }
 
     private fun exitSensingState() {
