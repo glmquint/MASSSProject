@@ -38,6 +38,12 @@ class MainActivity : AppCompatActivity(){
                 val intent = Intent(this, NoiseActivity::class.java)
                 intent.putExtra("serverURL", text_server.toString())
                 startActivity(intent)
+                // save the text_server in a cache file
+                /*
+                applicationContext.openFileOutput("serverURL.txt", MODE_PRIVATE).use {
+                    it.write(text_server.toByteArray())
+                }
+                */
             }
 
         }
