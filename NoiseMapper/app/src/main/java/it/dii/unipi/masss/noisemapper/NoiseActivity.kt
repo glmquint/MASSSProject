@@ -299,34 +299,26 @@ class NoiseActivity() : AppCompatActivity() {
     }
 
     private fun updateMap(startTS: Long? = null, endTS: Long? = null) {
-        val currentTime = Calendar.getInstance()
+        Thread {
+            val currentTime = Calendar.getInstance()
 
-        // Get time an hour before
-        val timeAnHourBefore = Calendar.getInstance()
-        timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1)
+            // Get time an hour before
+            val timeAnHourBefore = Calendar.getInstance()
+            timeAnHourBefore.add(Calendar.HOUR_OF_DAY, -1)
 
-        // Convert to Unix timestamp
-        val currentUnixTimestamp = endTS ?: currentTime.timeInMillis
-        val previousHourUnixTimestamp = startTS ?: timeAnHourBefore.timeInMillis
+            // Convert to Unix timestamp
+            val currentUnixTimestamp = endTS ?: currentTime.timeInMillis
+            val previousHourUnixTimestamp = startTS ?: timeAnHourBefore.timeInMillis
 
-        // Log the results
-        Log.i("PollingRequest", "Current time: ${currentTime.time}")
-        Log.i("PollingRequest", "Unix timestamp of current time: $currentUnixTimestamp")
+            // Log the results
+            Log.i("PollingRequest", "Current time: ${currentTime.time}")
+            Log.i("PollingRequest", "Unix timestamp of current time: $currentUnixTimestamp")
 
-        Log.i("PollingRequest", "Time an hour before: ${timeAnHourBefore.time}")
-        Log.i(
-            "PollingRequest",
-            "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
-        )
-        graph.makeplot(
-            noise_map_io.performGetRequest(
-                previousHourUnixTimestamp / 1000,
-                currentUnixTimestamp / 1000
+            Log.i("PollingRequest", "Time an hour before: ${timeAnHourBefore.time}")
+            Log.i(
+                "PollingRequest",
+                "Unix timestamp of time an hour before: $previousHourUnixTimestamp"
             )
-        )
-        runOnUiThread {
-            webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
-        }
             graph.makeplot(
                 noise_map_io.performGetRequest(
                     previousHourUnixTimestamp / 1000,
@@ -334,6 +326,10 @@ class NoiseActivity() : AppCompatActivity() {
                     if (this::ble_scanner.isInitialized) ble_scanner.json_array_request else ArrayList()
                 )
             )
+            runOnUiThread {
+                webView.loadUrl("file://" + filesDir.absolutePath + "/output.html")
+            }
+        }.start()
     }
 
     private fun exitSensingState() {
