@@ -11,7 +11,8 @@ import org.jetbrains.letsPlot.scale.scaleFillGradient
 
 class Graph(private val filesDir: String, private val bleConfig: BLEConfig){
     fun makeplot(room_noise: Map<String, Double>) {
-        val room_mapping = bleConfig.beaconRoomMap?.layout
+        // TODO: should check that beaconRoomMap is initialized
+        val room_mapping = bleConfig.beaconRoomMap.layout
 
         val noiseLevels = room_mapping?.get("room_name")?.map { room_noise[it] }
         val noiseLabels = room_mapping?.get("room_name")?.map { "$it: \n${String.format("%.2f", room_noise[it]?:0.0)} dB" }
