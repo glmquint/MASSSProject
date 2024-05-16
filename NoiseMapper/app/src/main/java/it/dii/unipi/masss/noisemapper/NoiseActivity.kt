@@ -100,7 +100,7 @@ class NoiseActivity() : AppCompatActivity() {
             dateRangePicker.addOnPositiveButtonClickListener { selection ->
                 startDate = selection.first
                 // add 1 day to the end date to include the whole day
-                endDate = selection.second + 24 * 60 * 60 * 1000
+                endDate = selection.second.plus(this.resources.getInteger(R.integer.MILLISECONDS_IN_A_DAY))
                 Log.i("MainActivity", "Date range selected: $startDate - $endDate")
                 updateMap(startDate, endDate)
             }
