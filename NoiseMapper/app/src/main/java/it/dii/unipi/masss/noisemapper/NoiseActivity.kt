@@ -188,6 +188,7 @@ class NoiseActivity() : AppCompatActivity() {
     private fun startSensing() {
         noise_microphone.startListening()
         ble_scanner.startScanning()
+        proximitySensorHandler.startListening()
     }
 
     inner class RecorderTask() : TimerTask() {
