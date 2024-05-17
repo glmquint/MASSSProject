@@ -374,9 +374,10 @@ class NoiseActivity() : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (inSensingState()) {
+            powerGovernor.unregister()
             switchCompat.isChecked = false
         }
-        powerGovernor.unregister()
+
     }
 }
 
