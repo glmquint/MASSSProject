@@ -9,7 +9,7 @@
     <integer name="AUDIO_SAMPLING_RATE">44100</integer>
     <integer name="FAST_AUDIO_REFRESH_RATE">500</integer>
     <integer name="SLOW_AUDIO_REFRESH_RATE">1500</integer>
-    <integer name="FAST_UPDATE_MAP_PERIOD">1000</integer>
-    <integer name="SLOW_UPDATE_MAP_PERIOD">5000</integer>
+    <integer name="FAST_UPDATE_MAP_PERIOD">15000</integer>
+    <integer name="SLOW_UPDATE_MAP_PERIOD">30000</integer>
     <integer name="DB_ADJUSTMENT">5</integer>
 </resources>
