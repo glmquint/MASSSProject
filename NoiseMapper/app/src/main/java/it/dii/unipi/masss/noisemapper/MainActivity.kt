@@ -13,7 +13,6 @@ class MainActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val editText = findViewById<EditText>(R.id.editText)
-        //editText.text= editText.text.append("http://")
         findViewById<View>(R.id.button_noise_map).setOnClickListener {
             // get the editText text field and check if it is empty
             var text_server : String = editText.text.toString()
@@ -29,7 +28,6 @@ class MainActivity : AppCompatActivity(){
                 return@setOnClickListener
             }
             else{
-                // concat :5002 to the text_server do not change the UI
                 val http = "http://"
                 text_server = http.plus(text_server).plus(":5002")
                 Log.i("MainActivity", "Text field not empty $text_server")
@@ -38,17 +36,7 @@ class MainActivity : AppCompatActivity(){
                 val intent = Intent(this, NoiseActivity::class.java)
                 intent.putExtra("serverURL", text_server.toString())
                 startActivity(intent)
-                // save the text_server in a cache file
-                /*
-                applicationContext.openFileOutput("serverURL.txt", MODE_PRIVATE).use {
-                    it.write(text_server.toByteArray())
-                }
-                */
             }
-
         }
-
     }
-
-
 }

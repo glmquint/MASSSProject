@@ -10,8 +10,7 @@ import org.jetbrains.letsPlot.letsPlot
 import org.jetbrains.letsPlot.scale.scaleFillGradient
 
 class Graph(private val filesDir: String, private val bleConfig: BLEConfig){
-    fun makeplot(room_noise: Map<String, Double>) {
-        // TODO: should check that beaconRoomMap is initialized
+    fun makeplot(room_noise: Map<String, Double>, filename:String) {
         val room_mapping = bleConfig.beaconRoomMap.layout
 
         val noiseLevels = room_mapping?.get("room_name")?.map { room_noise[it] }
@@ -32,7 +31,6 @@ class Graph(private val filesDir: String, private val bleConfig: BLEConfig){
         }
         p += ggtitle("Noise levels of different rooms")
         p += scaleFillGradient(low = "green", high = "red")
-        //p += ggsize(700, 350)
-        ggsave(p, filename="output.html", path=filesDir)
+        ggsave(p, filename=filename, path=filesDir)
     }
 }

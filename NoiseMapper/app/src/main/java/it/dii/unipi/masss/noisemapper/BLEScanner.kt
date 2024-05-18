@@ -26,7 +26,7 @@ import java.io.IOException
 class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boolean) {
     private val proximityManager : ProximityManager
     private var lastUpdate: Long = 0
-    public var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
+    var json_array_request: ArrayList<Map<String, Any>> = ArrayList()
 
     // obtain flush window from numbers.xml
     private var FAST_FLUSH_WINDOW = activity.resources.getInteger(R.integer.FAST_FLUSH_SAMPLES_WINDOW)
@@ -39,35 +39,26 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
         setupProximityManager(activity)
     }
 
+    // flush window size depends on the power save mode
     fun getFlushWindow() : Int
     {
         return if (isPowerSaveMode) SLOW_FLUSH_WINDOW else FAST_FLUSH_WINDOW
     }
 
+    // define the update callback for bluetooth related events
     fun setupProximityManager(activity: NoiseActivity) {
         proximityManager.setIBeaconListener(object : SimpleIBeaconListener() {
-            override fun onIBeaconDiscovered(device: IBeaconDevice, region: IBeaconRegion) {
-                // print the discovered iBeacon device
-                println("iBeacon: Discovered iBeacon device: $device")
-            }
-
-            override fun onIBeaconLost(device: IBeaconDevice, region: IBeaconRegion) {
-                // print the lost iBeacon device
-                println("iBeacon: Lost iBeacon device: $device")
-            }
-
             override fun onIBeaconsUpdated(
                 beacons: MutableList<IBeaconDevice>,
                 region: IBeaconRegion
             ) {
-                // sort the iBeacon devices by rssi
                 val mutableBeacons =
                     beacons.filter { it.uniqueId in activity.bleConfig.beaconRoomMap.mapping.keys }
                         .toMutableList()
                 if (mutableBeacons.isEmpty()) {
                     return
                 }
-                mutableBeacons.sortByDescending { it.rssi }
+                mutableBeacons.sortByDescending { it.rssi } // sort by rssi
                 val strongestBeacon = mutableBeacons[0]
                 val nearest_room =
                     activity.bleConfig.beaconRoomMap.mapping.get(strongestBeacon.uniqueId) ?: "Unknown"
@@ -78,9 +69,8 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
                 val average_noise =
                     activity.map_noise_level.filter { it.key > lastUpdate && it.value != Double.NEGATIVE_INFINITY }.values.toList()
                         .average()
-                // activity.findViewById<TextView>(R.id.average_noise).text = "Average noise level: $average_noise"
                 lastUpdate = System.currentTimeMillis()
-                pushUpdate(nearest_room, average_noise, strongestBeacon)
+                pushUpdate(nearest_room, average_noise)
             }
         })
     }
@@ -91,27 +81,22 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
         val json_array = json.toJson(json_array_request)
         //send the array of json, then clear it
         send_json_array(json_array)
-
     }
 
-    private fun pushUpdate(nearest_room: String?, average_noise: Double, tonino: IBeaconDevice) {
-
-
+    // locally save samples in a queue, then send them to the server in batches to reduce network overhead
+    private fun pushUpdate(nearest_room: String?, average_noise: Double) {
         //push json in the queue
         val m = mapOf("room" to nearest_room, "noise" to average_noise) as Map<String, Any>
         json_array_request.add(m)
-
         //if the array gets gets to a certain size, all the json ar sent to server server
-        if (json_array_request.size == getFlushWindow() * retries) {
+        if (json_array_request.size == getFlushWindow() * retries) { // this depends on how many retries we did already
             flushRequest()
         }
     }
 
     private fun send_json_array(json: String) {
-
         // push the updated iBeacon devices to endpoint /beacons
         val measurement_url = activity.url + "/measurements"
-
         println("Pushing $json to $measurement_url")
         val client = OkHttpClient()
         val body = json.toRequestBody("application/json".toMediaTypeOrNull())
@@ -123,7 +108,6 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
             override fun onFailure(call: Call, e: IOException) {
                 Log.d("NoiseMapper", "Failed to push update")
             }
-
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     Log.d("NoiseMapper", "Successful push")
@@ -140,31 +124,20 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
     }
 
 
+    // adapter for the list of beacons, used to render the beacon list if we're in debug mode
     class BeaconAdapter(private val beacons: MutableList<IBeaconDevice>) : BaseAdapter() {
-
-        override fun getCount(): Int {
-            return beacons.size
-        }
-
-        override fun getItem(position: Int): Any {
-            return beacons[position]
-        }
-
-        override fun getItemId(position: Int): Long {
-            return position.toLong()
-        }
-
+        override fun getCount(): Int { return beacons.size }
+        override fun getItem(position: Int): Any { return beacons[position] }
+        override fun getItemId(position: Int): Long { return position.toLong() }
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val beacon = beacons[position]
             val view = convertView ?: LayoutInflater.from(parent?.context)
                 .inflate(R.layout.beacon_item, parent, false)
             view.findViewById<TextView>(R.id.beacon_id).text = beacon.uniqueId
             view.findViewById<TextView>(R.id.beacon_distance).text =
-                //beacon.distance.toString() + "m"
-                String.format("%.2f", beacon.distance) + " m"
+                String.format("%.2f", beacon.distance) + " m" // stop at centimeter level precision (don't need more)
             return view
         }
-
     }
 
     fun stopScanning() {

@@ -7,7 +7,6 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 interface FileDownloadCallback {
-
     fun onFileDownloaded(filePath: String)
     fun onFileDownloadError(errorMessage: String)
 }
@@ -20,6 +19,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
     val url = serverUrl
     var lock = Object()
 
+    // immediately try to contact the server to get the config file
     init {
         Log.i("NoiseMapper", "Url for BLE config is $url")
         if (!offline) {
@@ -32,6 +32,7 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
         successfulConfig = readJSONfile()
     }
 
+    // read the JSON file from the internal storage
     fun readFromFile(context: Context, fileName: String): String {
         val stringBuilder = StringBuilder()
         try {
@@ -49,14 +50,12 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
         }
         return stringBuilder.toString()
     }
-    fun readJSONfile(): Boolean {
 
+    fun readJSONfile(): Boolean {
         try {
             val gson = Gson()
-
             synchronized(lock) {
                 val jsonString = readFromFile(context, context.getString(R.string.config_file_name))
-                // Parse JSON to JsonObject
                 beaconRoomMap = gson.fromJson(jsonString, ConfigData::class.java)
             }
         }
@@ -68,10 +67,8 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
         return true
     }
 
-    // Usage
+    // use the noiseMapIO class to download the config file from the server
     fun GetConfigFileFromServer(url: String) {
-        //type the url of the server
-
         val callback = object : FileDownloadCallback {
             override fun onFileDownloaded(filePath: String) {
                 Log.d("NoiseMapper","Config file correctly downloaded")
@@ -81,14 +78,13 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
                 Log.e("NoiseMapper", "Error on downloading BLE config $errorMessage")
             }
         }
-        val noise_map_io : NoiseMapIO = NoiseMapIO(context, url);
+        val noise_map_io = NoiseMapIO(context, url);
         noise_map_io.retrieveFileFromServer(callback , fileToSave="config.json",lock)
     }
 
 
 
     fun gotConfig(): Boolean {
-        return successfulConfig
+        return successfulConfig // can be true either if the config was correctly downloaded or if a local copy is available
     }
 }
-// "the value is saved /data/user/0/it.dii.unipi.masss.noisemapper/files/config.json"

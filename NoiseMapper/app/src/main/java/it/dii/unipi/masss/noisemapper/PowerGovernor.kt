@@ -49,7 +49,7 @@ class PowerSaveModeDetector(private val noiseActivity: NoiseActivity) {
 
             }
             if (newIsPowerSaveMode != isPowerSaveMode) {
-                noiseActivity.onBatteryStatusUpdate(newIsPowerSaveMode)
+                noiseActivity.onBatteryStatusUpdate()
                 isPowerSaveMode = newIsPowerSaveMode
             }
         }

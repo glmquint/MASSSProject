@@ -10,10 +10,11 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-//class that performs the config requests to the server and retrieve the array of tuple (room, noise) sending the time interval
+//class that performs the config requests to the server and retrieves the array of tuples (room, noise) sending the time interval
 class NoiseMapIO(private val context: Context, private val url : String = "") {
-    private val CONNECTION_TIMEOUT = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION)
+    private val CONNECTION_TIMEOUT = context.resources.getInteger(R.integer.TIMEOUT_CONNECTION) // must be less than 5 seconds, or else Android system will kill the app
 
+    // perform the get request to download the config file from the server
     fun retrieveFileFromServer(
             callback: FileDownloadCallback,
             fileToSave: String,
@@ -44,12 +45,12 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
                         e.printStackTrace()
                         callback.onFileDownloadError("Error: ${e.message}")
                     }
-                    lock.notify()
+                    lock.notify() // release the lock after downloading or after an error
                 }
             }.start()
         }
 
-        // get measurement list from server inside the time interval
+        // get measurement list from server for samples inside the time interval [start_from, end_to]
         fun performGetRequest(start_from: Long, end_to: Long, auxilary: MutableList<Map<String, Any>>): Map<String, Double> {
             var roomNoise = mapOf<String, Double>();
             val lock = Object()
@@ -72,19 +73,19 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
                             response as MutableList<Map<String, Any>>
                             response.addAll(auxilary)
 
-                            //response.groupBy { it["room"] }.map { (room, value) -> room }  // TODO: prepare data to be plotted
                             try{
                                 val alpha = 0.9
-                                roomNoise = response.filter{ it["noise"] != null }.groupBy { it["room"] }
-                                    .mapValues { (_, samples) ->
-                                    samples.map { it["noise"]!! as Double }
-                                        // exponential moving average via exponential smoothing
-                                        .reduce({ acc, d -> alpha * d + (1 - alpha) * acc })
-                                } as Map<String, Double>
+
+                                roomNoise = response.filter{ it["noise"] != null }          // discard all invalid samples
+                                    .groupBy { it["room"] }                                 // graph plotting requires room name as key
+                                    .mapValues { (_, samples) ->                            // for each room, average the noise levels
+                                        samples.map { it["noise"]!! as Double }
+                                        .reduce({ acc, d -> alpha * d + (1 - alpha) * acc })// exponential moving average via exponential smoothing
+                                } as Map<String, Double> // we get a map of room -> average noise level
+
                             } catch (e: Exception){
                                 Log.e("PollingRequest", "noise map averaging failed with exception: $e")
                             }
-
                             Log.i(
                                 "PollingRequest",
                                 "GET request successful with response: $roomNoise"
@@ -94,7 +95,6 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
                                 "PollingRequest",
                                 "GET request failed with response code: $responseCode"
                             )
-
                         }
                         connection.disconnect()
                     } catch (e: Exception) {
@@ -105,7 +105,7 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
             }.start()
 
             synchronized(lock) {
-                lock.wait()
+                lock.wait() // waits for the thread to finish
             }
 
             return roomNoise;
