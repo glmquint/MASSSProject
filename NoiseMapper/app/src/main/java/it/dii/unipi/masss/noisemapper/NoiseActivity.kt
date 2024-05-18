@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
+import android.widget.CheckBox
+import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -127,6 +129,16 @@ class NoiseActivity() : AppCompatActivity() {
             } else {
                 Log.i("NoiseMapper", "Switch is OFF: exiting sensing state")
                 exitSensingState()
+            }
+        }
+
+        val beaconList = findViewById<ListView>(R.id.beacon_list)
+        val debugCheckBox = findViewById<CheckBox>(R.id.debugCheckBox)
+        debugCheckBox.setOnCheckedChangeListener() { _, isChecked ->
+            if (isChecked) {
+                beaconList.visibility = ListView.VISIBLE
+            } else {
+                beaconList.visibility = ListView.GONE
             }
         }
     }
