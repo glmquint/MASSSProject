@@ -27,7 +27,6 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
                 synchronized(lock) {
                     lock.wait()
                 }
-
         }
         successfulConfig = readJSONfile()
     }
@@ -54,12 +53,10 @@ class BLEConfig(private val context: Context, offline: Boolean = false, serverUr
     fun readJSONfile(): Boolean {
         try {
             val gson = Gson()
-            synchronized(lock) {
-                val jsonString = readFromFile(context, context.getString(R.string.config_file_name))
-                beaconRoomMap = gson.fromJson(jsonString, ConfigData::class.java)
-            }
+            val jsonString = readFromFile(context, context.getString(R.string.config_file_name))
+            beaconRoomMap = gson.fromJson(jsonString, ConfigData::class.java)
         }
-        catch (e: Exception) {
+        catch (e: Exception) { // if the file is not found or the JSON is not correctly formatted
             Log.i("NoiseMapper", "Error reading JSON config file")
             e.printStackTrace()
             return false

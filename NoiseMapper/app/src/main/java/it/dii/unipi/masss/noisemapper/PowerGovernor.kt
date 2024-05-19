@@ -16,8 +16,6 @@ class PowerSaveModeDetector(private val noiseActivity: NoiseActivity) {
         isPowerSaveMode = powerManager.isPowerSaveMode || batteryStatus <= 20
     }
 
-
-
     private val powerSaveModeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -34,19 +32,16 @@ class PowerSaveModeDetector(private val noiseActivity: NoiseActivity) {
                         newIsPowerSaveMode = false
                     }
                 }
-
                 Intent.ACTION_BATTERY_LOW -> {
                     newIsPowerSaveMode = true
                     Log.i("PowerSaveModeDetector", "Battery low")
                     // Battery is low
                 }
-
                 Intent.ACTION_POWER_CONNECTED -> {
                     Log.i("PowerSaveModeDetector", "Power connected")
                     newIsPowerSaveMode = false
                     // Power is connected
                 }
-
             }
             if (newIsPowerSaveMode != isPowerSaveMode) {
                 noiseActivity.onBatteryStatusUpdate()

@@ -33,7 +33,7 @@ class NoiseMicrophone(
         mRecorder.setAudioEncoder(AUDIO_ENCODER)
         mRecorder.setAudioEncodingBitRate(AUDIO_ENCODING_BIT_RATE);
         mRecorder.setAudioSamplingRate(AUDIO_SAMPLING_RATE);
-        mRecorder.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3")).fd)
+        mRecorder.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3"), false).fd)
 
     }
     fun startListening() {

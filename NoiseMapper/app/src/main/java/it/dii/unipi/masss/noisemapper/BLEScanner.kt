@@ -113,11 +113,10 @@ class BLEScanner(val activity: NoiseActivity, private val isPowerSaveMode: Boole
                     Log.d("NoiseMapper", "Successful push")
                     // clear the json array
                     json_array_request.clear()
-                    retries = 1
-                    // reset the window size (may not be necessary)
+                    retries = 1 // 1 instead of 0 because we need to multiply it by the flush window size
                 } else {
                     Log.d("NoiseMapper", "Failed push")
-                    retries++
+                    retries++ // if the push fails, we retry at the next flush_window
                 }
             }
         })

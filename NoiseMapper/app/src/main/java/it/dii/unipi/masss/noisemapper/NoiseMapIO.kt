@@ -20,7 +20,6 @@ class NoiseMapIO(private val context: Context, private val url : String = "") {
             fileToSave: String,
             lock: Any
         ) {
-
             Thread {
                 synchronized(lock) {
                     try {

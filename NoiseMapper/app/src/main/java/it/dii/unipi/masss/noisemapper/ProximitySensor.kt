@@ -23,8 +23,7 @@ class ProximitySensorHandler(context: Context) : SensorEventListener {
         sensorManager.unregisterListener(this)
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { return }
 
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {

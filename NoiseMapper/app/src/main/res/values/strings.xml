@@ -19,6 +19,6 @@
     <string name="config_file_name">config.json</string>
     <string name="pick_date">Pick date</string>
     <string name="refresh_map">Refresh map</string>
-    <string name="db_level_no_sensing">0.0 dB</string>
+    <string name="db_level_no_sensing">0,0 dB</string>
     <string name="graph_file_name">output.html</string>
 </resources>

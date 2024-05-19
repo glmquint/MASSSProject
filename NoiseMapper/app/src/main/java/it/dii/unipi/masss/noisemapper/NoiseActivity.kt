@@ -30,26 +30,26 @@ import kotlin.math.abs
 import kotlin.math.log10
 
 
-class NoiseActivity() : AppCompatActivity() {
+class NoiseActivity : AppCompatActivity() {
     private lateinit var debugCheckBox: CheckBox
     private lateinit var beaconList: ListView
     var FAST_UPDATE_MAP_PERIOD : Int = 0
     var SLOW_UPDATE_MAP_PERIOD : Int = 0
     lateinit var url: String
 
-    val map_noise_level: MutableMap<Long, Double> = mutableMapOf()
+                     val map_noise_level: MutableMap<Long, Double> = mutableMapOf()
     private lateinit var noise_microphone: NoiseMicrophone
     private lateinit var ble_scanner: BLEScanner
     private lateinit var pickDateButton: Button
-    private val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
+    private          val RECORD_AUDIO_BLUETOOTH_SCAN_PERMISSION_REQUEST_CODE = 101
     private lateinit var switchCompat: SwitchCompat
     private lateinit var webView: WebView
     private lateinit var graph: Graph
     private lateinit var updateMapTimer: Timer
-    lateinit var bleConfig: BLEConfig
+            lateinit var bleConfig: BLEConfig
     private lateinit var noise_map_io: NoiseMapIO
     private lateinit var notGrantedPermissions: Array<String>
-    private val requiredPermissions = arrayOf(Manifest.permission.RECORD_AUDIO) +
+    private          val requiredPermissions = arrayOf(Manifest.permission.RECORD_AUDIO) +
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
             else arrayOf(
