@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 
+// class that handles the proximity sensor
 class ProximitySensorHandler(context: Context) : SensorEventListener {
 
     private var sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -23,10 +24,10 @@ class ProximitySensorHandler(context: Context) : SensorEventListener {
         sensorManager.unregisterListener(this)
     }
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) { // because of the interface we need to redefine this method
     }
 
-    override fun onSensorChanged(event: SensorEvent?) {
+    override fun onSensorChanged(event: SensorEvent?) { // this method is called when the sensor detects a change
         event?.let {
             isNearObject = it.values[0] < (proximitySensor?.maximumRange ?: 0.0f)
         }

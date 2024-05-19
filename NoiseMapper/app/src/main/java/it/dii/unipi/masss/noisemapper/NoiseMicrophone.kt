@@ -9,6 +9,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.Timer
 
+// class that is responsible for the microphone recording
 class NoiseMicrophone(
     context: Context,
     cacheDir: File,
@@ -36,7 +37,7 @@ class NoiseMicrophone(
         mRecorder.setOutputFile(FileOutputStream(File(cacheDir, "audio.mp3")).fd)
 
     }
-    fun startListening() {
+    fun startListening() { // this method prepare the media recorder and start the timer for noise sampling
         try {
             mRecorder.prepare()
             mRecorder.start()
@@ -54,7 +55,7 @@ class NoiseMicrophone(
         }
     }
 
-    fun stopListening() {
+    fun stopListening() { // this method stops the timer and the media recorder
         timer?.cancel()
         timer = null
         try {
