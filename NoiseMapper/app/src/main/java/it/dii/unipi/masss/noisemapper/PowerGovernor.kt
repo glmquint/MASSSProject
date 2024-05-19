@@ -6,14 +6,14 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.PowerManager
 import android.util.Log
-
+// class that detects the power events related to the battery and the power save mode, it registers a receiver to listen to the events
 class PowerSaveModeDetector(private val noiseActivity: NoiseActivity) {
     var isPowerSaveMode: Boolean
     init {
         val powerManager = noiseActivity.getSystemService(Context.POWER_SERVICE) as PowerManager
         val batteryManager = noiseActivity.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
         val batteryStatus = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-        isPowerSaveMode = powerManager.isPowerSaveMode || batteryStatus <= 20
+        isPowerSaveMode = powerManager.isPowerSaveMode || batteryStatus <= 20 // if the battery is low or the power save mode is on
     }
 
     private val powerSaveModeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -43,8 +43,8 @@ class PowerSaveModeDetector(private val noiseActivity: NoiseActivity) {
                     // Power is connected
                 }
             }
-            if (newIsPowerSaveMode != isPowerSaveMode) {
-                noiseActivity.onBatteryStatusUpdate()
+            if (newIsPowerSaveMode != isPowerSaveMode) { // this prevent the callback to be called if the mode is the same
+                noiseActivity.onBatteryStatusUpdate() // callback that force to update the timer interval
                 isPowerSaveMode = newIsPowerSaveMode
             }
         }
